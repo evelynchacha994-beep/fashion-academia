@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: fashion_academia_db
+    restart: always
+    environment:
+      POSTGRES_DB: academia_fashion
+      POSTGRES_USER: evelyn
+      POSTGRES_PASSWORD: fashion2026
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    container_name: fashion_academia_backend
+    restart: always
+    ports:
+      - "8086:80"   # <--- CAMBIADO A 8086 PARA EVITAR CONFLICTOS
+    volumes:
+      - ./backend:/var/www/html
+    depends_on:
+      - db
+
+volumes:
+  pgdata:
