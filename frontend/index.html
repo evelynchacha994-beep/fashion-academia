@@ -3,413 +3,513 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fashion Academia - Sistema</title>
+    <title>Academia Fashion - Sistema Profesional</title>
+    <!-- Bootstrap 5 & Iconos -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Librerías para Exportación Real -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+    
     <style>
-        /* ESTILOS VISUALES (CSS) */
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #f4f4f9; color: #333; height: 100vh; overflow: hidden; }
+        :root {
+            --primary-purple: #6a1b9a;
+            --dark-purple: #4a148c;
+            --light-purple: #f3e5f5;
+            --bg-white: #ffffff;
+            --text-gray: #424242;
+            --border-color: #e0e0e0;
+        }
+
+        body { background-color: var(--light-purple); font-family: 'Segoe UI', system-ui, sans-serif; color: var(--text-gray); overflow-x: hidden; }
         
         /* LOGIN */
-        .login-container { display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(135deg, #2c003e 0%, #4a148c 100%); }
-        .login-box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 100%; max-width: 400px; text-align: center; }
-        .login-box h2 { color: #4a148c; margin-bottom: 10px; }
-        .form-group { margin-bottom: 20px; text-align: left; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #4a148c; font-size: 0.9rem; }
-        .form-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; outline: none; transition: 0.3s; }
-        .form-group input:focus { border-color: #6a1b9a; box-shadow: 0 0 0 3px rgba(106, 27, 154, 0.1); }
-        .btn-login { width: 100%; background-color: #4a148c; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .btn-login:hover { background-color: #3a0b70; }
-        .error-msg { color: #c62828; background: #ffebee; padding: 10px; border-radius: 4px; margin-bottom: 20px; font-size: 0.9rem; display: none; }
+        .login-wrapper { height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--dark-purple) 0%, #8e24aa 100%); }
+        .login-card { background: var(--bg-white); padding: 2.5rem; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); width: 100%; max-width: 420px; text-align: center; }
+        .login-card h2 { color: var(--dark-purple); font-weight: 700; margin-bottom: 0.5rem; }
+        .form-control:focus { border-color: var(--primary-purple); box-shadow: 0 0 0 0.2rem rgba(106, 27, 154, 0.25); }
+        .btn-primary-custom { background-color: var(--primary-purple); border: none; padding: 10px; font-weight: 600; color: white; }
+        .btn-primary-custom:hover { background-color: var(--dark-purple); color: white; }
 
-        /* DASHBOARD LAYOUT */
-        .dashboard-container { display: none; height: 100vh; }
-        .sidebar { width: 260px; background-color: #2c003e; color: white; display: flex; flex-direction: column; padding: 20px; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
-        .logo-area { text-align: center; margin-bottom: 40px; }
-        .logo-area h2 { font-size: 1.2rem; letter-spacing: 1px; color: #d8b4fe; }
-        .menu-item { padding: 12px 15px; margin-bottom: 5px; border-radius: 8px; cursor: pointer; transition: 0.3s; color: #e9d5ff; text-decoration: none; display: block;}
-        .menu-item:hover, .menu-item.active { background-color: #6a1b9a; color: white; transform: translateX(5px); }
-        .user-profile { margin-top: auto; padding-top: 20px; border-top: 1px solid #4a148c; font-size: 0.9rem; }
+        /* DASHBOARD */
+        .dashboard-container { display: none; min-height: 100vh; }
+        .sidebar { width: 260px; background-color: var(--dark-purple); color: white; position: fixed; height: 100vh; padding-top: 20px; z-index: 1000; display: flex; flex-direction: column; }
+        .sidebar-brand { font-size: 1.2rem; font-weight: bold; text-align: center; margin-bottom: 2rem; letter-spacing: 1px; color: #d8b4fe; }
+        .nav-link { color: rgba(255,255,255,0.8); padding: 12px 25px; transition: 0.3s; border-left: 4px solid transparent; cursor: pointer; }
+        .nav-link:hover, .nav-link.active { background-color: rgba(255,255,255,0.1); color: white; border-left-color: #e1bee7; }
+        .nav-link i { margin-right: 10px; width: 20px; text-align: center; }
         
-        .main-content { flex: 1; overflow-y: auto; padding: 30px; background-color: #f4f4f9; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-        .header h1 { color: #4a148c; font-size: 1.8rem; }
+        .user-profile { margin-top: auto; padding: 20px 25px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .btn-logout-sidebar { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: white; width: 100%; padding: 8px; border-radius: 6px; transition: 0.3s; margin-top: 10px; }
+        .btn-logout-sidebar:hover { background: rgba(255,255,255,0.1); border-color: white; color: white; }
+
+        .main-content { margin-left: 260px; padding: 30px; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .page-title h1 { color: var(--dark-purple); font-weight: 700; font-size: 1.8rem; margin: 0; }
+        .page-title p { color: #757575; margin: 5px 0 0; font-size: 0.9rem; }
+
+        /* CARDS & TABLES */
+        .card-custom { background: var(--bg-white); border-radius: 12px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 25px; }
+        .filter-tabs .btn { border: 1px solid var(--border-color); color: #616161; font-weight: 600; border-radius: 8px; margin-right: 10px; background: white; }
+        .filter-tabs .btn.active { background-color: var(--light-purple); color: var(--dark-purple); border-color: var(--dark-purple); }
         
-        .btn-action { background-color: #6a1b9a; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: 0.3s; }
-        .btn-action:hover { background-color: #5a1680; }
-        .btn-logout { background-color: #c62828; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; margin-left: 10px; transition: 0.3s; }
-        .btn-logout:hover { background-color: #b71c1c; }
-        .success-msg { background: #e8f5e9; color: #2e7d32; padding: 10px 15px; border-radius: 6px; margin-bottom: 15px; font-size: 0.9rem; border-left: 4px solid #2e7d32; display: none; animation: fadeIn 0.5s; }
+        .table thead th { background-color: #fafafa; color: var(--dark-purple); font-weight: 700; border-bottom: 2px solid var(--light-purple); font-size: 0.85rem; text-transform: uppercase; }
+        .table tbody td { vertical-align: middle; color: #424242; font-size: 0.95rem; }
+        .table-hover tbody tr:hover { background-color: #fdfbff; }
 
-        /* FILTROS Y BÚSQUEDA */
-        .search-bar { background: white; padding: 15px 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; display: flex; gap: 15px; align-items: center; }
-        .search-input-wrapper { flex: 1; position: relative; }
-        .search-input { width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; outline: none; transition: 0.3s; }
-        .search-input:focus { border-color: #6a1b9a; box-shadow: 0 0 0 3px rgba(106, 27, 154, 0.1); }
-        .course-select { padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; outline: none; background: white; min-width: 250px; cursor: pointer; transition: 0.3s; }
-        
-        .filter-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab-btn { flex: 1; padding: 15px; border: none; border-radius: 8px; background: white; color: #666; font-weight: bold; cursor: pointer; transition: 0.3s; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .tab-btn[data-filter="En Curso"] { border-left: 5px solid #1565c0; }
-        .tab-btn[data-filter="En Curso"].active { background: #e3f2fd; color: #1565c0; }
-        .tab-btn[data-filter="Aprobado"] { border-left: 5px solid #6a1b9a; }
-        .tab-btn[data-filter="Aprobado"].active { background: #f3e5f5; color: #6a1b9a; }
-        .tab-btn[data-filter="Reprobado"] { border-left: 5px solid #c62828; }
-        .tab-btn[data-filter="Reprobado"].active { background: #ffebee; color: #c62828; }
-        .tab-count { background: rgba(0,0,0,0.05); padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; }
+        /* BADGES */
+        .badge-status { padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px; }
+        .bg-en-curso { background-color: #e3f2fd; color: #1565c0; }
+        .bg-aprobado { background-color: #f3e5f5; color: #6a1b9a; }
+        .bg-reprobado { background-color: #ffebee; color: #c62828; }
+        .bg-activo { background-color: #e8f5e9; color: #2e7d32; }
 
-        /* TABLAS */
-        .table-container { background: white; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden; margin-bottom: 30px; }
-        table { width: 100%; border-collapse: collapse; }
-        th { background-color: #faf5ff; color: #4a148c; text-align: left; padding: 15px; font-size: 0.85rem; text-transform: uppercase; border-bottom: 2px solid #e1bee7; }
-        td { padding: 15px; border-bottom: 1px solid #eee; font-size: 0.9rem; vertical-align: middle; }
-        tr:last-child td { border-bottom: none; }
-        tr:hover { background-color: #fdfbff; }
-        
-        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; display: inline-block; }
-        .status-active { background-color: #e8f5e9; color: #2e7d32; }
-        .status-curso { background-color: #e3f2fd; color: #1565c0; }
-        .status-aprobado { background-color: #f3e5f5; color: #6a1b9a; }
-        .status-reprobado { background-color: #ffebee; color: #c62828; }
-        .no-course { color: #999; font-style: italic; }
+        /* UTILS */
+        .search-box input { border-radius: 20px; padding-left: 20px; border: 1px solid #ddd; }
+        .btn-action { background-color: var(--primary-purple); color: white; border-radius: 8px; padding: 8px 20px; font-weight: 600; border: none; }
+        .btn-action:hover { background-color: var(--dark-purple); color: white; }
+        .btn-danger-outline { border: 1px solid #c62828; color: #c62828; background: transparent; border-radius: 8px; padding: 8px 20px; font-weight: 600; }
+        .btn-danger-outline:hover { background: #c62828; color: white; }
+        .stat-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center; border-top: 4px solid var(--primary-purple); }
+        .stat-number { font-size: 2rem; font-weight: bold; color: var(--dark-purple); }
 
-        /* MODAL */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(3px); }
-        .modal-overlay.active { display: flex; animation: fadeIn 0.3s; }
-        .modal-content { background: white; width: 100%; max-width: 500px; border-radius: 12px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .modal-header h3 { color: #4a148c; }
-        .close-modal { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #999; transition: 0.3s; }
-        .close-modal:hover { color: #333; }
-        .file-drop-zone { border: 2px dashed #ccc; border-radius: 8px; padding: 30px; text-align: center; margin-bottom: 20px; cursor: pointer; transition: 0.3s; }
-        .file-drop-zone:hover { border-color: #6a1b9a; background: #faf5ff; }
-        .file-drop-zone p { color: #666; margin-bottom: 10px; }
-        .btn-process { width: 100%; background: #6a1b9a; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .btn-process:hover { background: #5a1680; }
-
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @media (max-width: 768px) { .sidebar { width: 0; overflow: hidden; } .main-content { margin-left: 0; } }
     </style>
 </head>
 <body>
 
-<!-- VISTA 1: LOGIN -->
-<div class="login-container" id="loginView">
-    <div class="login-box">
-        <h2>FASHION ACADEMIA</h2>
-        <p>Sistema de Administración</p>
-        <div class="error-msg" id="loginError">Usuario o contraseña incorrectos.</div>
-        <form id="loginForm">
-            <div class="form-group"><label>Usuario</label><input type="text" id="username" required placeholder="admin"></div>
-            <div class="form-group"><label>Contraseña</label><input type="password" id="password" required placeholder="123456"></div>
-            <button type="submit" class="btn-login">Ingresar</button>
-        </form>
-    </div>
-</div>
-
-<!-- VISTA 2: DASHBOARD -->
-<div class="dashboard-container" id="dashboardView">
-    <div class="sidebar">
-        <div class="logo-area"><h2>FASHION ACADEMIA</h2><p style="font-size: 0.7rem; opacity: 0.7;">Sistema de Administración</p></div>
-        <a href="#" class="menu-item active" data-view="estudiantes">• Estudiantes</a>
-        <a href="#" class="menu-item" data-view="docentes">• Docentes</a>
-        <a href="#" class="menu-item" data-view="cursos">• Cursos y Horarios</a>
-        <div class="user-profile">
-            <strong id="userNameDisplay">Invitado</strong><br>
-            <span style="opacity: 0.7;" id="userRoleDisplay">Sin rol</span>
+    <!-- LOGIN -->
+    <div id="loginSection" class="login-wrapper">
+        <div class="login-card">
+            <h2><i class="fas fa-crown me-2"></i>FASHION ACADEMIA</h2>
+            <p class="text-muted mb-4">Sistema de Administración Profesional</p>
+            <form id="loginForm">
+                <div class="mb-3 text-start"><label class="form-label fw-bold small">USUARIO</label><input type="text" id="usuario" class="form-control form-control-lg" required></div>
+                <div class="mb-4 text-start"><label class="form-label fw-bold small">CONTRASEÑA</label><input type="password" id="password" class="form-control form-control-lg" required></div>
+                <button type="submit" class="btn btn-primary-custom w-100 btn-lg shadow-sm">INGRESAR AL SISTEMA</button>
+                <div id="loginMsg" class="mt-3 text-danger small fw-bold"></div>
+            </form>
         </div>
     </div>
 
-    <div class="main-content">
-        <!-- CONTENIDO ESTUDIANTES -->
-        <div id="view-estudiantes">
-            <div class="header">
-                <div><h1>Gestión de Estudiantes</h1><p style="color: #666; font-size: 0.9rem;">Filtra y administra alumnos por estado académico</p></div>
-                <div>
-                    <button class="btn-action" onclick="document.getElementById('uploadModal').classList.add('active')"> Subir Resultados</button>
-                    <button class="btn-logout" onclick="logout()">Salir</button>
+    <!-- DASHBOARD -->
+    <div id="dashboardSection" class="dashboard-container">
+        <nav class="sidebar">
+            <div class="sidebar-brand"><i class="fas fa-gem text-warning me-2"></i>ACADEMIA FASHION</div>
+            <ul class="nav flex-column">
+                <li class="nav-item"><a class="nav-link active" onclick="switchView('estudiantes')"><i class="fas fa-users"></i> Estudiantes</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="switchView('docentes')"><i class="fas fa-chalkboard-teacher"></i> Docentes</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="switchView('cursos')"><i class="fas fa-book-open"></i> Cursos y Horarios</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="switchView('matriculas')"><i class="fas fa-user-plus"></i> Matrículas</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="switchView('reportes')"><i class="fas fa-chart-pie"></i> Reportes</a></li>
+            </ul>
+            <div class="user-profile">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-white rounded-circle text-dark d-flex align-items-center justify-content-center me-2" style="width:35px; height:35px; font-weight:bold;">A</div>
+                    <div><div id="userNameDisplay" class="fw-bold small">Admin</div><div id="userRolDisplay" class="small text-white-50">Administrador</div></div>
+                </div>
+                <button id="logoutBtnSidebar" class="btn-logout-sidebar"><i class="fas fa-sign-out-alt me-1"></i> Cerrar Sesión</button>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <!-- VIEW: ESTUDIANTES -->
+            <div id="view-estudiantes">
+                <div class="top-bar">
+                    <div class="page-title"><h1>Gestión de Estudiantes</h1><p>Filtra y administra alumnos por estado académico</p></div>
+                    <div><button class="btn btn-action me-2" data-bs-toggle="modal" data-bs-target="#uploadModal"><i class="fas fa-cloud-upload-alt me-2"></i>Subir Resultados</button><button class="btn btn-danger-outline" onclick="handleLogout()"><i class="fas fa-power-off me-2"></i>Salir</button></div>
+                </div>
+                <div class="card-custom p-3 mb-4">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-6 search-box"><input type="text" id="searchInput" class="form-control" placeholder="Buscar por nombre, cédula o ID..."></div>
+                        <div class="col-md-3"><select id="courseFilter" class="form-select"><option value="">Todos los cursos</option></select></div>
+                        <div class="col-md-3 filter-tabs text-end">
+                            <button id="btnEnCurso" class="btn btn-sm active status-btn">En Curso</button>
+                            <button id="btnAprobados" class="btn btn-sm status-btn">Aprobados</button>
+                            <button id="btnReprobados" class="btn btn-sm status-btn">Reprobados</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-custom p-0 overflow-hidden">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead><tr><th class="ps-4">ID</th><th>Cédula</th><th>Nombres Completos</th><th>Teléfono</th><th>Curso Actual</th><th>Estado Matrícula</th><th>Estado General</th></tr></thead>
+                            <tbody id="studentTableBody"><tr><td colspan="7" class="text-center py-4 text-muted">Cargando datos...</td></tr></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-            
-            <div class="success-msg" id="uploadMsg"></div>
 
-            <div class="search-bar">
-                <div class="search-input-wrapper"><input type="text" id="searchInput" class="search-input" placeholder="Buscar por nombre, cédula o ID..."></div>
-                <select id="courseFilter" class="course-select">
-                    <option value="">Todos los cursos</option>
-                </select>
+            <!-- VIEW: DOCENTES -->
+            <div id="view-docentes" style="display:none;">
+                <div class="top-bar">
+                    <div class="page-title"><h1>Gestión de Docentes</h1><p>Personal académico registrado</p></div>
+                    <div><button class="btn btn-action" data-bs-toggle="modal" data-bs-target="#addTeacherModal"><i class="fas fa-plus me-2"></i>Nuevo Docente</button></div>
+                </div>
+                <div class="card-custom p-3 mb-4">
+                    <div class="row"><div class="col-md-6 search-box"><input type="text" id="searchTeacherInput" class="form-control" placeholder="Buscar por cédula o nombre..."></div></div>
+                </div>
+                <div class="card-custom p-0 overflow-hidden">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead><tr><th class="ps-4">ID</th><th>Cédula</th><th>Nombres</th><th>Apellidos</th><th>Especialidad</th><th>Teléfono</th><th>Correo</th></tr></thead>
+                            <tbody id="teacherTableBody"><tr><td colspan="7" class="text-center py-4 text-muted">Cargando docentes...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
-            <div class="filter-tabs">
-                <button class="tab-btn active" data-filter="En Curso" onclick="filterStudents('En Curso')">
-                    <span>En Curso</span><span class="tab-count" id="count-curso">0</span>
-                </button>
-                <button class="tab-btn" data-filter="Aprobado" onclick="filterStudents('Aprobado')">
-                    <span>Aprobados</span><span class="tab-count" id="count-aprobado">0</span>
-                </button>
-                <button class="tab-btn" data-filter="Reprobado" onclick="filterStudents('Reprobado')">
-                    <span>Reprobados</span><span class="tab-count" id="count-reprobado">0</span>
-                </button>
+            <!-- VIEW: CURSOS Y HORARIOS -->
+            <div id="view-cursos" style="display:none;">
+                <div class="top-bar"><div class="page-title"><h1>Cursos y Horarios</h1><p>Oferta académica vigente</p></div></div>
+                <div class="card-custom p-0 overflow-hidden">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead><tr><th class="ps-4">Curso</th><th>Día</th><th>Horario</th><th>Docente</th><th>Aula</th></tr></thead>
+                            <tbody id="scheduleTableBody"><tr><td colspan="5" class="text-center py-4 text-muted">Cargando horarios...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
-            <div class="table-container">
-                <table>
-                    <thead><tr><th>ID</th><th>Cédula</th><th>Nombres Completos</th><th>Teléfono</th><th>Curso Actual</th><th>Estado Matrícula</th><th>Estado General</th></tr></thead>
-                    <tbody id="studentTableBody">
-                        <!-- Se llena dinámicamente con JS -->
-                    </tbody>
-                </table>
+            <!-- VIEW: MATRÍCULAS -->
+            <div id="view-matriculas" style="display:none;">
+                <div class="top-bar"><div class="page-title"><h1>Nueva Matrícula</h1><p>Registrar estudiante en un curso</p></div></div>
+                <div class="card-custom p-4" style="max-width: 600px;">
+                    <form id="enrollForm">
+                        <div class="mb-3"><label class="form-label fw-bold">Estudiante</label><select id="enrollStudent" class="form-select" required><option value="">Seleccione estudiante...</option></select></div>
+                        <div class="mb-3"><label class="form-label fw-bold">Curso</label><select id="enrollCourse" class="form-select" required><option value="">Seleccione curso...</option></select></div>
+                        <button type="submit" class="btn btn-action w-100">Confirmar Matrícula</button>
+                    </form>
+                </div>
             </div>
-        </div>
 
-        <!-- CONTENIDO DOCENTES (Placeholder) -->
-        <div id="view-docentes" style="display: none;">
-            <div class="header"><div><h1>Gestión de Docentes</h1></div></div>
-            <div class="table-container"><p style="padding: 20px;">Contenido de docentes cargado vía API...</p></div>
-        </div>
-
-        <!-- CONTENIDO CURSOS (Placeholder) -->
-        <div id="view-cursos" style="display: none;">
-            <div class="header"><div><h1>Cursos y Horarios</h1></div></div>
-            <div class="table-container"><p style="padding: 20px;">Contenido de cursos cargado vía API...</p></div>
-        </div>
+            <!-- VIEW: REPORTES -->
+            <div id="view-reportes" style="display:none;">
+                <div class="top-bar">
+                    <div class="page-title"><h1>Reportes del Sistema</h1><p>Resumen ejecutivo y exportación</p></div>
+                    <div>
+                        <button class="btn btn-action me-2" onclick="exportData('excel')"><i class="fas fa-file-excel me-2"></i>Excel</button>
+                        <button class="btn btn-danger-outline" onclick="exportData('pdf')"><i class="fas fa-file-pdf me-2"></i>PDF</button>
+                    </div>
+                </div>
+                <div class="row g-4 mb-4">
+                    <div class="col-md-3"><div class="stat-card"><div class="stat-number" id="repTotal">0</div><div class="text-muted">Total Estudiantes</div></div></div>
+                    <div class="col-md-3"><div class="stat-card" style="border-top-color: #1565c0;"><div class="stat-number" id="repCurso" style="color:#1565c0">0</div><div class="text-muted">En Curso</div></div></div>
+                    <div class="col-md-3"><div class="stat-card" style="border-top-color: #6a1b9a;"><div class="stat-number" id="repAprob" style="color:#6a1b9a">0</div><div class="text-muted">Aprobados</div></div></div>
+                    <div class="col-md-3"><div class="stat-card" style="border-top-color: #c62828;"><div class="stat-number" id="repRepro" style="color:#c62828">0</div><div class="text-muted">Reprobados</div></div></div>
+                </div>
+                <div class="card-custom p-0 overflow-hidden">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead><tr><th class="ps-4">Curso</th><th>Total Matriculados</th><th>En Curso</th><th>Aprobados</th><th>Reprobados</th></tr></thead>
+                            <tbody id="reportTableBody"><tr><td colspan="5" class="text-center py-4 text-muted">Cargando reportes...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
-</div>
 
-<!-- MODAL SUBIR EXCEL -->
-<div class="modal-overlay" id="uploadModal">
-    <div class="modal-content">
-        <div class="modal-header"><h3> Subir Resultados Académicos</h3><button class="close-modal" onclick="this.closest('.modal-overlay').classList.remove('active')">&times;</button></div>
-        <form id="uploadForm" enctype="multipart/form-data">
-            <div class="file-drop-zone" onclick="document.getElementById('excelFile').click()">
-                <p>📄 Haz clic para seleccionar archivo .xlsx</p>
-                <input type="file" id="excelFile" name="results_file" accept=".xlsx,.xls" style="display:none" required onchange="this.parentElement.querySelector('p').textContent = '✅ ' + this.files[0].name">
-            </div>
-            <button type="submit" class="btn-process">Procesar y Actualizar Estados</button>
-        </form>
-    </div>
-</div>
+    <!-- MODALS -->
+    <div class="modal fade" id="uploadModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow"><div class="modal-header bg-light border-0"><h5 class="modal-title fw-bold"><i class="fas fa-file-excel text-success me-2"></i>Subir Resultados</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><input type="file" id="excelFile" class="form-control" accept=".xlsx,.xls"></div><div class="modal-footer border-0"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button type="button" id="uploadBtn" class="btn btn-action">Procesar</button></div></div></div></div>
 
-<script>
-/* =========================================
-   LÓGICA JAVASCRIPT (FUNCIONALIDAD)
-   ========================================= */
+    <div class="modal fade" id="addTeacherModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow"><div class="modal-header bg-light border-0"><h5 class="modal-title fw-bold"><i class="fas fa-user-plus text-primary me-2"></i>Nuevo Docente</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><form id="addTeacherForm"><div class="row g-3"><div class="col-6"><label class="form-label small fw-bold">Cédula</label><input type="text" name="cedula" class="form-control" required maxlength="10"></div><div class="col-6"><label class="form-label small fw-bold">Teléfono</label><input type="text" name="telefono" class="form-control" required maxlength="10"></div><div class="col-6"><label class="form-label small fw-bold">Nombres</label><input type="text" name="nombres" class="form-control" required></div><div class="col-6"><label class="form-label small fw-bold">Apellidos</label><input type="text" name="apellidos" class="form-control" required></div><div class="col-12"><label class="form-label small fw-bold">Especialidad</label><input type="text" name="especialidad" class="form-control" required></div><div class="col-12"><label class="form-label small fw-bold">Correo</label><input type="email" name="correo" class="form-control" required></div></div><button type="submit" class="btn btn-action w-100 mt-4">Guardar Docente</button></form></div></div></div></div>
 
-// ️ CONFIGURACIÓN CRÍTICA DE API_URL ⚠️
-// PARA DOCKER LOCAL: Usa '/backend/api.php' (gracias al proxy de Nginx)
-// PARA PRODUCCIÓN (Render/Netlify): Cambia a 'https://tu-api-en-render.com/api.php'
-const API_URL = '/backend/api.php'; 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_URL = 'http://localhost:8086/api/api.php';
+        let currentFilter = { course: '', status: 'En Curso' };
+        let allStudents = [], allTeachers = [], allSchedules = [], reportData = {};
 
-// ESTADO GLOBAL
-let currentFilter = 'En Curso';
-let allStudents = [];
-let courseList = [];
-
-// INICIALIZACIÓN
-document.addEventListener('DOMContentLoaded', () => {
-    checkSession();
-    setupEventListeners();
-});
-
-function setupEventListeners() {
-    // Login
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const user = document.getElementById('username').value;
-        const pass = document.getElementById('password').value;
-        
-        try {
-            const res = await fetch(`${API_URL}?action=login`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({usuario: user, password: pass})
-            });
-            const data = await res.json();
-            
-            if(data.success) {
-                sessionStorage.setItem('user', JSON.stringify(data.user));
-                loadDashboard();
-            } else {
-                const err = document.getElementById('loginError');
-                err.style.display = 'block';
-                err.textContent = data.message || 'Error al iniciar sesión';
-            }
-        } catch(err) { 
-            console.error(err); 
-            alert('Error de conexión con el servidor. Verifica que el backend esté activo.'); 
-        }
-    });
-
-    // Navegación Sidebar
-    document.querySelectorAll('.menu-item').forEach(item => {
-        item.addEventListener('click', (e) => {
-            e.preventDefault();
-            document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
-            item.classList.add('active');
-            
-            const viewName = item.getAttribute('data-view');
-            document.querySelectorAll('[id^="view-"]').forEach(v => v.style.display = 'none');
-            document.getElementById(`view-${viewName}`).style.display = 'block';
+        document.addEventListener('DOMContentLoaded', () => {
+            checkSession();
+            setupEvents();
         });
-    });
 
-    // Filtros Estudiantes
-    document.getElementById('searchInput').addEventListener('input', applyFilters);
-    document.getElementById('courseFilter').addEventListener('change', applyFilters);
+        function setupEvents() {
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+            document.getElementById('logoutBtnSidebar').addEventListener('click', handleLogout);
+            
+            // Estudiantes Filters
+            document.getElementById('searchInput').addEventListener('input', renderStudentTable);
+            document.getElementById('courseFilter').addEventListener('change', (e) => { currentFilter.course = e.target.value; renderStudentTable(); });
+            ['btnEnCurso', 'btnAprobados', 'btnReprobados'].forEach(id => {
+                document.getElementById(id).addEventListener('click', (e) => {
+                    document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    const map = { 'btnEnCurso': 'En Curso', 'btnAprobados': 'Aprobado', 'btnReprobados': 'Reprobado' };
+                    currentFilter.status = map[id];
+                    renderStudentTable();
+                });
+            });
 
-    // Upload Excel
-    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        try {
-            const res = await fetch(`${API_URL}?action=upload_excel`, { method: 'POST', body: formData });
-            const data = await res.json();
-            if(data.success) {
-                const msg = document.getElementById('uploadMsg');
-                msg.textContent = data.message;
-                msg.style.display = 'block';
-                document.getElementById('uploadModal').classList.remove('active');
-                loadStudents(); // Recargar datos
-            } else {
-                alert('Error: ' + data.message);
-            }
-        } catch(err) { console.error(err); }
-    });
-}
+            // Docentes Search
+            document.getElementById('searchTeacherInput').addEventListener('input', renderTeacherTable);
 
-// LÓGICA DE SESIÓN Y DATOS
-async function checkSession() {
-    const storedUser = sessionStorage.getItem('user');
-    if(storedUser) {
-        loadDashboard(JSON.parse(storedUser));
-    }
-}
-
-async function loadDashboard(user = null) {
-    if(!user) user = JSON.parse(sessionStorage.getItem('user'));
-    
-    document.getElementById('loginView').style.display = 'none';
-    document.getElementById('dashboardView').style.display = 'flex';
-    document.getElementById('userNameDisplay').textContent = user.usuario;
-    document.getElementById('userRoleDisplay').textContent = user.rol;
-    
-    await Promise.all([loadStudents(), loadCourses()]);
-}
-
-async function loadStudents() {
-    try {
-        const res = await fetch(`${API_URL}?action=get_students`);
-        const data = await res.json();
-        if(data.success) {
-            allStudents = data.students;
-            renderStudents();
+            // Forms
+            document.getElementById('addTeacherForm').addEventListener('submit', handleAddTeacher);
+            document.getElementById('enrollForm').addEventListener('submit', handleEnroll);
+            document.getElementById('uploadBtn').addEventListener('click', handleExcelUpload);
         }
-    } catch(err) { console.error('Error cargando estudiantes:', err); }
-}
 
-async function loadCourses() {
-    try {
-        const res = await fetch(`${API_URL}?action=get_courses`);
-        const data = await res.json();
-        if(data.success) {
-            courseList = data.courses;
-            const select = document.getElementById('courseFilter');
-            select.innerHTML = '<option value="">Todos los cursos</option>';
-            courseList.forEach(c => {
-                select.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`;
+        async function handleLogin(e) {
+            e.preventDefault();
+            const res = await fetch(API_URL + '?action=login', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ usuario: document.getElementById('usuario').value, password: document.getElementById('password').value }), credentials: 'include' });
+            const data = await res.json();
+            if (data.success) {
+                localStorage.setItem('user_rol', data.user.rol);
+                updateUI(data.user);
+                loadAllData();
+            } else { document.getElementById('loginMsg').textContent = data.message; }
+        }
+
+        async function handleLogout() {
+            await fetch(API_URL + '?action=logout', { method: 'POST', credentials: 'include' });
+            localStorage.removeItem('user_rol');
+            window.location.reload();
+        }
+
+        function checkSession() {
+            if (localStorage.getItem('user_rol')) {
+                updateUI({ usuario: 'Admin', rol: localStorage.getItem('user_rol') });
+                loadAllData();
+            }
+        }
+
+        function updateUI(user) {
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('dashboardSection').style.display = 'block';
+            document.getElementById('userNameDisplay').textContent = user.usuario;
+            document.getElementById('userRolDisplay').textContent = user.rol;
+        }
+
+        function switchView(viewName) {
+            ['estudiantes', 'docentes', 'cursos', 'matriculas', 'reportes'].forEach(v => document.getElementById('view-' + v).style.display = 'none');
+            document.getElementById('view-' + viewName).style.display = 'block';
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            
+            // Load specific data when switching
+            if (viewName === 'docentes') renderTeacherTable();
+            if (viewName === 'cursos') renderScheduleTable();
+            if (viewName === 'matriculas') loadEnrollOptions();
+            if (viewName === 'reportes') loadReports();
+        }
+
+        async function loadAllData() {
+            // Students
+            const sRes = await fetch(API_URL + '?action=get_students', { credentials: 'include' });
+            const sData = await sRes.json();
+            if (sData.success) { allStudents = sData.students; renderStudentTable(); }
+
+            // Courses for filters
+            const cRes = await fetch(API_URL + '?action=get_courses', { credentials: 'include' });
+            const cData = await cRes.json();
+            if (cData.success) {
+                const sel = document.getElementById('courseFilter');
+                sel.innerHTML = '<option value="">Todos los cursos</option>';
+                cData.courses.forEach(c => sel.innerHTML += '<option value="' + c.nombre + '">' + c.nombre + '</option>');
+            }
+
+            // Teachers
+            const tRes = await fetch(API_URL + '?action=get_teachers', { credentials: 'include' });
+            const tData = await tRes.json();
+            if (tData.success) allTeachers = tData.teachers;
+
+            // Schedules
+            const hRes = await fetch(API_URL + '?action=get_schedules', { credentials: 'include' });
+            const hData = await hRes.json();
+            if (hData.success) allSchedules = hData.schedules;
+        }
+
+        // --- RENDER FUNCTIONS ---
+        function renderStudentTable() {
+            const tbody = document.getElementById('studentTableBody');
+            const term = document.getElementById('searchInput').value.toLowerCase();
+            let filtered = allStudents.filter(s => {
+                const matchStatus = s.matricula_estado === currentFilter.status;
+                const matchCourse = !currentFilter.course || s.curso_nombre === currentFilter.course;
+                const matchSearch = !term || s.nombres.toLowerCase().includes(term) || s.apellidos.toLowerCase().includes(term) || s.cedula.includes(term) || String(s.id_estudiante).includes(term);
+                return matchStatus && matchCourse && matchSearch;
+            });
+
+            tbody.innerHTML = '';
+            if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">Sin resultados</td></tr>'; return; }
+            
+            filtered.forEach(s => {
+                const badge = s.matricula_estado === 'Aprobado' ? 'bg-aprobado' : s.matricula_estado === 'Reprobado' ? 'bg-reprobado' : 'bg-en-curso';
+                tbody.innerHTML += '<tr><td class="ps-4 fw-bold text-muted">#' + s.id_estudiante + '</td><td>' + s.cedula + '</td><td class="fw-bold">' + s.nombres + ' ' + s.apellidos + '</td><td>' + (s.telefono||'-') + '</td><td>' + (s.curso_nombre||'-') + '</td><td><span class="badge-status ' + badge + '">' + s.matricula_estado + '</span></td><td><span class="badge-status bg-activo">Activo</span></td></tr>';
             });
         }
-    } catch(err) { console.error('Error cargando cursos:', err); }
-}
 
-function logout() {
-    sessionStorage.removeItem('user');
-    window.location.reload();
-}
-
-// RENDERIZADO Y FILTRADO
-function renderStudents() {
-    const tbody = document.getElementById('studentTableBody');
-    tbody.innerHTML = '';
-    
-    let counts = {'En Curso': 0, 'Aprobado': 0, 'Reprobado': 0};
-    
-    allStudents.forEach(est => {
-        const status = est.matricula_estado || 'Sin Matricula';
-        if(counts.hasOwnProperty(status)) counts[status]++;
-        
-        // Solo renderizar si coincide con filtro actual (optimización simple)
-        if(status === currentFilter) {
-            const row = createStudentRow(est);
-            tbody.appendChild(row);
+        function renderTeacherTable() {
+            const tbody = document.getElementById('teacherTableBody');
+            const term = document.getElementById('searchTeacherInput').value.toLowerCase();
+            const filtered = allTeachers.filter(t => !term || t.nombres.toLowerCase().includes(term) || t.apellidos.toLowerCase().includes(term) || t.cedula.includes(term));
+            
+            tbody.innerHTML = '';
+            if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">Sin resultados</td></tr>'; return; }
+            
+            filtered.forEach(t => {
+                tbody.innerHTML += '<tr><td class="ps-4 fw-bold text-muted">#' + t.id_docente + '</td><td>' + t.cedula + '</td><td>' + t.nombres + '</td><td>' + t.apellidos + '</td><td>' + t.especialidad + '</td><td>' + (t.telefono||'-') + '</td><td>' + (t.correo||'-') + '</td></tr>';
+            });
         }
-    });
-    
-    updateCounts(counts);
-}
 
-function createStudentRow(est) {
-    const tr = document.createElement('tr');
-    tr.className = 'student-row';
-    tr.dataset.status = est.matricula_estado || 'Sin Matricula';
-    tr.dataset.course = est.curso_nombre || '';
-    tr.dataset.name = `${est.nombres} ${est.apellidos}`.toLowerCase();
-    tr.dataset.cedula = est.cedula;
-    tr.dataset.id = est.id_estudiante;
-    
-    let badgeClass = '';
-    if(est.matricula_estado === 'En Curso') badgeClass = 'status-curso';
-    else if(est.matricula_estado === 'Aprobado') badgeClass = 'status-aprobado';
-    else if(est.matricula_estado === 'Reprobado') badgeClass = 'status-reprobado';
-    
-    tr.innerHTML = `
-        <td>#${est.id_estudiante}</td>
-        <td>${est.cedula}</td>
-        <td>${est.nombres} ${est.apellidos}</td>
-        <td>${est.telefono || '-'}</td>
-        <td>${est.curso_nombre ? est.curso_nombre : '<span class="no-course">Sin asignar</span>'}</td>
-        <td>${est.matricula_estado ? `<span class="status-badge ${badgeClass}">${est.matricula_estado}</span>` : '-'}</td>
-        <td><span class="status-badge status-active">${est.est_estado}</span></td>
-    `;
-    return tr;
-}
-
-function filterStudents(status) {
-    currentFilter = status;
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.getAttribute('data-filter') === status);
-    });
-    applyFilters();
-}
-
-function applyFilters() {
-    const term = document.getElementById('searchInput').value.toLowerCase();
-    const selectedCourse = document.getElementById('courseFilter').value.toLowerCase();
-    const rows = document.querySelectorAll('.student-row');
-    
-    let counts = {'En Curso': 0, 'Aprobado': 0, 'Reprobado': 0};
-    
-    rows.forEach(row => {
-        const matchesTab = row.dataset.status === currentFilter;
-        const matchesSearch = row.dataset.name.includes(term) || 
-                             row.dataset.cedula.includes(term) || 
-                             row.dataset.id.includes(term);
-        const matchesCourse = !selectedCourse || row.dataset.course.toLowerCase() === selectedCourse;
-        
-        const isVisible = matchesTab && matchesSearch && matchesCourse;
-        row.style.display = isVisible ? '' : 'none';
-        
-        if(isVisible && counts.hasOwnProperty(row.dataset.status)) {
-            counts[row.dataset.status]++;
+        function renderScheduleTable() {
+            const tbody = document.getElementById('scheduleTableBody');
+            tbody.innerHTML = '';
+            if (!allSchedules.length) { tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">Sin horarios registrados</td></tr>'; return; }
+            
+            allSchedules.forEach(h => {
+                tbody.innerHTML += '<tr><td class="ps-4 fw-bold">' + h.curso + '</td><td>' + h.dia + '</td><td>' + h.horario + '</td><td>' + h.docente + '</td><td>' + h.aula + '</td></tr>';
+            });
         }
-    });
-    
-    updateCounts(counts);
-}
 
-function updateCounts(counts) {
-    document.getElementById('count-curso').textContent = counts['En Curso'];
-    document.getElementById('count-aprobado').textContent = counts['Aprobado'];
-    document.getElementById('count-reprobado').textContent = counts['Reprobado'];
-}
-</script>
+        async function loadEnrollOptions() {
+            const sSel = document.getElementById('enrollStudent');
+            const cSel = document.getElementById('enrollCourse');
+            sSel.innerHTML = '<option value="">Seleccione estudiante...</option>';
+            cSel.innerHTML = '<option value="">Seleccione curso...</option>';
+            
+            allStudents.forEach(s => sSel.innerHTML += '<option value="' + s.id_estudiante + '">' + s.nombres + ' ' + s.apellidos + ' (' + s.cedula + ')</option>');
+            
+            const cRes = await fetch(API_URL + '?action=get_courses', { credentials: 'include' });
+            const cData = await cRes.json();
+            if (cData.success) cData.courses.forEach(c => cSel.innerHTML += '<option value="' + c.id_curso + '">' + c.nombre + '</option>');
+        }
+
+        async function handleEnroll(e) {
+            e.preventDefault();
+            const res = await fetch(API_URL + '?action=enroll_student', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ id_estudiante: document.getElementById('enrollStudent').value, id_curso: document.getElementById('enrollCourse').value }), credentials: 'include' });
+            const data = await res.json();
+            alert(data.message);
+            if (data.success) { e.target.reset(); loadAllData(); }
+        }
+
+        async function handleAddTeacher(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            const res = await fetch(API_URL + '?action=add_teacher', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data), credentials: 'include' });
+            const result = await res.json();
+            alert(result.message);
+            if (result.success) { bootstrap.Modal.getInstance(document.getElementById('addTeacherModal')).hide(); e.target.reset(); loadAllData(); }
+        }
+
+        async function loadReports() {
+            const res = await fetch(API_URL + '?action=get_reports', { credentials: 'include' });
+            const data = await res.json();
+            if (data.success) {
+                reportData = data;
+                document.getElementById('repTotal').textContent = data.stats.total_students;
+                document.getElementById('repCurso').textContent = data.stats.en_curso;
+                document.getElementById('repAprob').textContent = data.stats.aprobados;
+                document.getElementById('repRepro').textContent = data.stats.reprobados;
+                
+                const tbody = document.getElementById('reportTableBody');
+                tbody.innerHTML = '';
+                data.course_stats.forEach(c => {
+                    tbody.innerHTML += '<tr><td class="ps-4 fw-bold">' + c.nombre + '</td><td>' + c.total + '</td><td style="color:#1565c0">' + c.en_curso + '</td><td style="color:#6a1b9a">' + c.aprobados + '</td><td style="color:#c62828">' + c.reprobados + '</td></tr>';
+                });
+            }
+        }
+
+        async function handleExcelUpload() {
+            const file = document.getElementById('excelFile').files[0];
+            if (!file) return alert('Selecciona un archivo');
+            const formData = new FormData(); formData.append('results_file', file);
+            const btn = document.getElementById('uploadBtn');
+            btn.disabled = true; btn.textContent = 'Procesando...';
+            
+            const res = await fetch(API_URL + '?action=upload_excel', { method: 'POST', body: formData, credentials: 'include' });
+            const data = await res.json();
+            alert(data.message);
+            if (data.success) { bootstrap.Modal.getInstance(document.getElementById('uploadModal')).hide(); loadAllData(); }
+            btn.disabled = false; btn.textContent = 'Procesar';
+        }
+
+        // --- FUNCIÓN DE EXPORTACIÓN REAL ---
+        async function exportData(type) {
+            try {
+                // 1. Obtener datos frescos de la API
+                const res = await fetch(API_URL + '?action=get_export_data', { credentials: 'include' });
+                const data = await res.json();
+                if (!data.success) return alert('Error al obtener datos para exportar');
+
+                if (type === 'excel') {
+                    // --- EXPORTAR A EXCEL ---
+                    const wb = XLSX.utils.book_new();
+                    
+                    // Hoja 1: Estudiantes
+                    const wsEst = XLSX.utils.json_to_sheet(data.students.map(s => ({
+                        ID: s.id_estudiante, Cédula: s.cedula, Nombres: s.nombres, Apellidos: s.apellidos,
+                        Curso: s.curso || 'Sin asignar', Estado: s.estado || 'Sin matrícula'
+                    })));
+                    XLSX.utils.book_append_sheet(wb, wsEst, "Estudiantes");
+
+                    // Hoja 2: Docentes
+                    const wsDoc = XLSX.utils.json_to_sheet(data.teachers.map(t => ({
+                        ID: t.id_docente, Cédula: t.cedula, Nombres: t.nombres, Apellidos: t.apellidos,
+                        Especialidad: t.especialidad, Teléfono: t.telefono, Correo: t.correo
+                    })));
+                    XLSX.utils.book_append_sheet(wb, wsDoc, "Docentes");
+
+                    // Hoja 3: Resumen Estadístico
+                    const wsStats = XLSX.utils.json_to_sheet([
+                        { Concepto: 'Total Estudiantes', Cantidad: data.stats.total_students },
+                        { Concepto: 'En Curso', Cantidad: data.stats.en_curso },
+                        { Concepto: 'Aprobados', Cantidad: data.stats.aprobados },
+                        { Concepto: 'Reprobados', Cantidad: data.stats.reprobados }
+                    ]);
+                    XLSX.utils.book_append_sheet(wb, wsStats, "Resumen");
+
+                    XLSX.writeFile(wb, "Reporte_Academia_Fashion.xlsx");
+
+                } else if (type === 'pdf') {
+                    // --- EXPORTAR A PDF ---
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF({ orientation: 'landscape' });
+                    
+                    // Encabezado
+                    doc.setFontSize(18);
+                    doc.setTextColor(74, 20, 140); // Morado corporativo
+                    doc.text("ACADEMIA FASHION - REPORTE GENERAL", 14, 20);
+                    doc.setFontSize(10);
+                    doc.setTextColor(100);
+                    doc.text("Generado el: " + new Date().toLocaleString(), 14, 26);
+
+                    // Tabla de Estudiantes
+                    doc.autoTable({
+                        startY: 35,
+                        head: [['ID', 'Cédula', 'Nombres', 'Apellidos', 'Curso', 'Estado']],
+                        body: data.students.map(s => [s.id_estudiante, s.cedula, s.nombres, s.apellidos, s.curso || '-', s.estado || '-']),
+                        theme: 'grid',
+                        headStyles: { fillColor: [74, 20, 140] },
+                        alternateRowStyles: { fillColor: [243, 229, 245] }
+                    });
+
+                    // Nueva página para Docentes
+                    doc.addPage();
+                    doc.setFontSize(16);
+                    doc.text("LISTADO DE DOCENTES", 14, 20);
+                    doc.autoTable({
+                        startY: 30,
+                        head: [['ID', 'Cédula', 'Nombres', 'Especialidad', 'Teléfono']],
+                        body: data.teachers.map(t => [t.id_docente, t.cedula, t.nombres + ' ' + t.apellidos, t.especialidad, t.telefono]),
+                        theme: 'grid',
+                        headStyles: { fillColor: [74, 20, 140] }
+                    });
+
+                    doc.save("Reporte_Academia_Fashion.pdf");
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error al generar el archivo: ' + err.message);
+            }
+        }
+    </script>
 </body>
 </html>
