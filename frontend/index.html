@@ -4,69 +4,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Academia Fashion - Sistema Profesional</title>
-    <!-- Bootstrap 5 & Iconos -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
-    <!-- Librerías para Exportación Real -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
     
     <style>
-        :root {
-            --primary-purple: #6a1b9a;
-            --dark-purple: #4a148c;
-            --light-purple: #f3e5f5;
-            --bg-white: #ffffff;
-            --text-gray: #424242;
-            --border-color: #e0e0e0;
-        }
-
+        :root { --primary-purple: #6a1b9a; --dark-purple: #4a148c; --light-purple: #f3e5f5; --bg-white: #ffffff; --text-gray: #424242; --border-color: #e0e0e0; }
         body { background-color: var(--light-purple); font-family: 'Segoe UI', system-ui, sans-serif; color: var(--text-gray); overflow-x: hidden; }
-        
-        /* LOGIN */
         .login-wrapper { height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--dark-purple) 0%, #8e24aa 100%); }
         .login-card { background: var(--bg-white); padding: 2.5rem; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); width: 100%; max-width: 420px; text-align: center; }
         .login-card h2 { color: var(--dark-purple); font-weight: 700; margin-bottom: 0.5rem; }
         .form-control:focus { border-color: var(--primary-purple); box-shadow: 0 0 0 0.2rem rgba(106, 27, 154, 0.25); }
         .btn-primary-custom { background-color: var(--primary-purple); border: none; padding: 10px; font-weight: 600; color: white; }
         .btn-primary-custom:hover { background-color: var(--dark-purple); color: white; }
-
-        /* DASHBOARD */
         .dashboard-container { display: none; min-height: 100vh; }
         .sidebar { width: 260px; background-color: var(--dark-purple); color: white; position: fixed; height: 100vh; padding-top: 20px; z-index: 1000; display: flex; flex-direction: column; }
         .sidebar-brand { font-size: 1.2rem; font-weight: bold; text-align: center; margin-bottom: 2rem; letter-spacing: 1px; color: #d8b4fe; }
         .nav-link { color: rgba(255,255,255,0.8); padding: 12px 25px; transition: 0.3s; border-left: 4px solid transparent; cursor: pointer; }
         .nav-link:hover, .nav-link.active { background-color: rgba(255,255,255,0.1); color: white; border-left-color: #e1bee7; }
         .nav-link i { margin-right: 10px; width: 20px; text-align: center; }
-        
         .user-profile { margin-top: auto; padding: 20px 25px; border-top: 1px solid rgba(255,255,255,0.1); }
         .btn-logout-sidebar { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: white; width: 100%; padding: 8px; border-radius: 6px; transition: 0.3s; margin-top: 10px; }
         .btn-logout-sidebar:hover { background: rgba(255,255,255,0.1); border-color: white; color: white; }
-
         .main-content { margin-left: 260px; padding: 30px; }
         .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
         .page-title h1 { color: var(--dark-purple); font-weight: 700; font-size: 1.8rem; margin: 0; }
         .page-title p { color: #757575; margin: 5px 0 0; font-size: 0.9rem; }
-
-        /* CARDS & TABLES */
         .card-custom { background: var(--bg-white); border-radius: 12px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 25px; }
         .filter-tabs .btn { border: 1px solid var(--border-color); color: #616161; font-weight: 600; border-radius: 8px; margin-right: 10px; background: white; }
         .filter-tabs .btn.active { background-color: var(--light-purple); color: var(--dark-purple); border-color: var(--dark-purple); }
-        
         .table thead th { background-color: #fafafa; color: var(--dark-purple); font-weight: 700; border-bottom: 2px solid var(--light-purple); font-size: 0.85rem; text-transform: uppercase; }
         .table tbody td { vertical-align: middle; color: #424242; font-size: 0.95rem; }
         .table-hover tbody tr:hover { background-color: #fdfbff; }
-
-        /* BADGES */
         .badge-status { padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px; }
         .bg-en-curso { background-color: #e3f2fd; color: #1565c0; }
         .bg-aprobado { background-color: #f3e5f5; color: #6a1b9a; }
         .bg-reprobado { background-color: #ffebee; color: #c62828; }
         .bg-activo { background-color: #e8f5e9; color: #2e7d32; }
-
-        /* UTILS */
         .search-box input { border-radius: 20px; padding-left: 20px; border: 1px solid #ddd; }
         .btn-action { background-color: var(--primary-purple); color: white; border-radius: 8px; padding: 8px 20px; font-weight: 600; border: none; }
         .btn-action:hover { background-color: var(--dark-purple); color: white; }
@@ -74,12 +50,15 @@
         .btn-danger-outline:hover { background: #c62828; color: white; }
         .stat-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center; border-top: 4px solid var(--primary-purple); }
         .stat-number { font-size: 2rem; font-weight: bold; color: var(--dark-purple); }
-
+        .btn-icon { padding: 6px 12px; font-size: 0.8rem; margin-right: 5px; border-radius: 6px; }
+        .btn-edit { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        .btn-edit:hover { background-color: #ffc107; color: #000; }
+        .btn-delete { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .btn-delete:hover { background-color: #dc3545; color: white; }
         @media (max-width: 768px) { .sidebar { width: 0; overflow: hidden; } .main-content { margin-left: 0; } }
     </style>
 </head>
 <body>
-
     <!-- LOGIN -->
     <div id="loginSection" class="login-wrapper">
         <div class="login-card">
@@ -135,7 +114,7 @@
                 <div class="card-custom p-0 overflow-hidden">
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
-                            <thead><tr><th class="ps-4">ID</th><th>Cédula</th><th>Nombres Completos</th><th>Teléfono</th><th>Curso Actual</th><th>Estado Matrícula</th><th>Estado General</th></tr></thead>
+                            <thead><tr><th class="ps-4">ID</th><th>Cédula</th><th>Nombres Completos</th><th>Teléfono</th><th>Curso Actual</th><th>Estado Matrícula</th><th>Certificado / Estado</th></tr></thead>
                             <tbody id="studentTableBody"><tr><td colspan="7" class="text-center py-4 text-muted">Cargando datos...</td></tr></tbody>
                         </table>
                     </div>
@@ -154,8 +133,8 @@
                 <div class="card-custom p-0 overflow-hidden">
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
-                            <thead><tr><th class="ps-4">ID</th><th>Cédula</th><th>Nombres</th><th>Apellidos</th><th>Especialidad</th><th>Teléfono</th><th>Correo</th></tr></thead>
-                            <tbody id="teacherTableBody"><tr><td colspan="7" class="text-center py-4 text-muted">Cargando docentes...</td></tr></tbody>
+                            <thead><tr><th class="ps-4">ID</th><th>Cédula</th><th>Nombres</th><th>Apellidos</th><th>Especialidad</th><th>Teléfono</th><th>Correo</th><th>Acciones</th></tr></thead>
+                            <tbody id="teacherTableBody"><tr><td colspan="8" class="text-center py-4 text-muted">Cargando docentes...</td></tr></tbody>
                         </table>
                     </div>
                 </div>
@@ -163,8 +142,20 @@
 
             <!-- VIEW: CURSOS Y HORARIOS -->
             <div id="view-cursos" style="display:none;">
-                <div class="top-bar"><div class="page-title"><h1>Cursos y Horarios</h1><p>Oferta académica vigente</p></div></div>
+                <div class="top-bar">
+                    <div class="page-title"><h1>Cursos y Horarios</h1><p>Oferta académica vigente</p></div>
+                    <div><button class="btn btn-action" data-bs-toggle="modal" data-bs-target="#addCourseModal"><i class="fas fa-plus me-2"></i>Crear Nuevo Curso</button></div>
+                </div>
                 <div class="card-custom p-0 overflow-hidden">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead><tr><th class="ps-4">ID</th><th>Nombre del Curso</th><th>Nivel</th><th>Duración</th><th>Costo</th><th>Acciones</th></tr></thead>
+                            <tbody id="courseTableBody"><tr><td colspan="6" class="text-center py-4 text-muted">Cargando cursos...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-custom p-0 overflow-hidden mt-4">
+                    <div class="p-3 bg-light border-bottom"><h5 class="mb-0">Horarios Asignados</h5></div>
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
                             <thead><tr><th class="ps-4">Curso</th><th>Día</th><th>Horario</th><th>Docente</th><th>Aula</th></tr></thead>
@@ -176,12 +167,24 @@
 
             <!-- VIEW: MATRÍCULAS -->
             <div id="view-matriculas" style="display:none;">
-                <div class="top-bar"><div class="page-title"><h1>Nueva Matrícula</h1><p>Registrar estudiante en un curso</p></div></div>
-                <div class="card-custom p-4" style="max-width: 600px;">
+                <div class="top-bar"><div class="page-title"><h1>Nueva Matrícula</h1><p>Registrar estudiante y asignar curso</p></div></div>
+                <div class="card-custom p-4" style="max-width: 700px;">
                     <form id="enrollForm">
-                        <div class="mb-3"><label class="form-label fw-bold">Estudiante</label><select id="enrollStudent" class="form-select" required><option value="">Seleccione estudiante...</option></select></div>
-                        <div class="mb-3"><label class="form-label fw-bold">Curso</label><select id="enrollCourse" class="form-select" required><option value="">Seleccione curso...</option></select></div>
-                        <button type="submit" class="btn btn-action w-100">Confirmar Matrícula</button>
+                        <h5 class="mb-3 text-muted border-bottom pb-2">Datos del Estudiante</h5>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4"><label class="form-label fw-bold">Cédula *</label><input type="text" name="cedula" class="form-control" required maxlength="10"></div>
+                            <div class="col-md-4"><label class="form-label fw-bold">Nombres *</label><input type="text" name="nombres" class="form-control" required></div>
+                            <div class="col-md-4"><label class="form-label fw-bold">Apellidos *</label><input type="text" name="apellidos" class="form-control" required></div>
+                            <div class="col-md-6"><label class="form-label fw-bold">Teléfono *</label><input type="text" name="telefono" class="form-control" required maxlength="10"></div>
+                            <div class="col-md-6"><label class="form-label fw-bold">Correo *</label><input type="email" name="correo" class="form-control" required></div>
+                        </div>
+                        <h5 class="mb-3 text-muted border-bottom pb-2">Asignación Académica</h5>
+                        <div class="row g-3">
+                            <div class="col-md-12"><label class="form-label fw-bold">Curso a Matricular *</label>
+                                <select id="enrollCourse" name="id_curso" class="form-select" required><option value="">Seleccione curso...</option></select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-action w-100 mt-4 py-2"><i class="fas fa-save me-2"></i> Registrar y Matricular</button>
                     </form>
                 </div>
             </div>
@@ -214,26 +217,33 @@
     </div>
 
     <!-- MODALS -->
+    <!-- Upload Excel -->
     <div class="modal fade" id="uploadModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow"><div class="modal-header bg-light border-0"><h5 class="modal-title fw-bold"><i class="fas fa-file-excel text-success me-2"></i>Subir Resultados</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><input type="file" id="excelFile" class="form-control" accept=".xlsx,.xls"></div><div class="modal-footer border-0"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button type="button" id="uploadBtn" class="btn btn-action">Procesar</button></div></div></div></div>
 
+    <!-- Add Teacher -->
     <div class="modal fade" id="addTeacherModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow"><div class="modal-header bg-light border-0"><h5 class="modal-title fw-bold"><i class="fas fa-user-plus text-primary me-2"></i>Nuevo Docente</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><form id="addTeacherForm"><div class="row g-3"><div class="col-6"><label class="form-label small fw-bold">Cédula</label><input type="text" name="cedula" class="form-control" required maxlength="10"></div><div class="col-6"><label class="form-label small fw-bold">Teléfono</label><input type="text" name="telefono" class="form-control" required maxlength="10"></div><div class="col-6"><label class="form-label small fw-bold">Nombres</label><input type="text" name="nombres" class="form-control" required></div><div class="col-6"><label class="form-label small fw-bold">Apellidos</label><input type="text" name="apellidos" class="form-control" required></div><div class="col-12"><label class="form-label small fw-bold">Especialidad</label><input type="text" name="especialidad" class="form-control" required></div><div class="col-12"><label class="form-label small fw-bold">Correo</label><input type="email" name="correo" class="form-control" required></div></div><button type="submit" class="btn btn-action w-100 mt-4">Guardar Docente</button></form></div></div></div></div>
+
+    <!-- Edit Teacher -->
+    <div class="modal fade" id="editTeacherModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow"><div class="modal-header bg-light border-0"><h5 class="modal-title fw-bold"><i class="fas fa-edit text-warning me-2"></i>Editar Docente</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><form id="editTeacherForm"><input type="hidden" name="id_docente" id="editTeacherId"><div class="row g-3"><div class="col-6"><label class="form-label small fw-bold">Cédula</label><input type="text" name="cedula" id="editTeacherCedula" class="form-control" required maxlength="10"></div><div class="col-6"><label class="form-label small fw-bold">Teléfono</label><input type="text" name="telefono" id="editTeacherTelefono" class="form-control" required maxlength="10"></div><div class="col-6"><label class="form-label small fw-bold">Nombres</label><input type="text" name="nombres" id="editTeacherNombres" class="form-control" required></div><div class="col-6"><label class="form-label small fw-bold">Apellidos</label><input type="text" name="apellidos" id="editTeacherApellidos" class="form-control" required></div><div class="col-12"><label class="form-label small fw-bold">Especialidad</label><input type="text" name="especialidad" id="editTeacherEspecialidad" class="form-control" required></div><div class="col-12"><label class="form-label small fw-bold">Correo</label><input type="email" name="correo" id="editTeacherCorreo" class="form-control" required></div></div><button type="submit" class="btn btn-action w-100 mt-4">Actualizar Docente</button></form></div></div></div></div>
+
+    <!-- Add Course -->
+    <div class="modal fade" id="addCourseModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content border-0 shadow"><div class="modal-header bg-light border-0"><h5 class="modal-title fw-bold"><i class="fas fa-plus text-primary me-2"></i>Nuevo Curso</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><form id="addCourseForm"><div class="mb-3"><label class="form-label fw-bold">Nombre del Curso</label><input type="text" name="nombre" class="form-control" required></div><div class="row g-2"><div class="col-6"><label class="form-label fw-bold">Duración (Horas)</label><input type="number" name="duracion" class="form-control" required></div><div class="col-6"><label class="form-label fw-bold">Costo ($)</label><input type="number" step="0.01" name="costo" class="form-control" required></div></div><div class="mb-3 mt-3"><label class="form-label fw-bold">Nivel</label><select name="nivel" class="form-select"><option>Básico</option><option>Intermedio</option><option>Avanzado</option></select></div><button type="submit" class="btn btn-action w-100">Crear Curso</button></form></div></div></div></div>
+
+    <!-- Edit Course -->
+    <div class="modal fade" id="editCourseModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content border-0 shadow"><div class="modal-header bg-light border-0"><h5 class="modal-title fw-bold"><i class="fas fa-edit text-warning me-2"></i>Editar Curso</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><form id="editCourseForm"><input type="hidden" name="id_curso" id="editCourseId"><div class="mb-3"><label class="form-label fw-bold">Nombre del Curso</label><input type="text" name="nombre" id="editCourseNombre" class="form-control" required></div><div class="row g-2"><div class="col-6"><label class="form-label fw-bold">Duración (Horas)</label><input type="number" name="duracion" id="editCourseDuracion" class="form-control" required></div><div class="col-6"><label class="form-label fw-bold">Costo ($)</label><input type="number" step="0.01" name="costo" id="editCourseCosto" class="form-control" required></div></div><div class="mb-3 mt-3"><label class="form-label fw-bold">Nivel</label><select name="nivel" id="editCourseNivel" class="form-select"><option>Básico</option><option>Intermedio</option><option>Avanzado</option></select></div><button type="submit" class="btn btn-action w-100">Actualizar Curso</button></form></div></div></div></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const API_URL = 'http://localhost:8086/api/api.php';
         let currentFilter = { course: '', status: 'En Curso' };
-        let allStudents = [], allTeachers = [], allSchedules = [], reportData = {};
+        let allStudents = [], allTeachers = [], allCourses = [], allSchedules = [], reportData = {};
 
-        document.addEventListener('DOMContentLoaded', () => {
-            checkSession();
-            setupEvents();
-        });
+        document.addEventListener('DOMContentLoaded', () => { checkSession(); setupEvents(); });
 
         function setupEvents() {
             document.getElementById('loginForm').addEventListener('submit', handleLogin);
             document.getElementById('logoutBtnSidebar').addEventListener('click', handleLogout);
             
-            // Estudiantes Filters
             document.getElementById('searchInput').addEventListener('input', renderStudentTable);
             document.getElementById('courseFilter').addEventListener('change', (e) => { currentFilter.course = e.target.value; renderStudentTable(); });
             ['btnEnCurso', 'btnAprobados', 'btnReprobados'].forEach(id => {
@@ -241,42 +251,34 @@
                     document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
                     e.target.classList.add('active');
                     const map = { 'btnEnCurso': 'En Curso', 'btnAprobados': 'Aprobado', 'btnReprobados': 'Reprobado' };
-                    currentFilter.status = map[id];
-                    renderStudentTable();
+                    currentFilter.status = map[id]; renderStudentTable();
                 });
             });
 
-            // Docentes Search
             document.getElementById('searchTeacherInput').addEventListener('input', renderTeacherTable);
-
-            // Forms
             document.getElementById('addTeacherForm').addEventListener('submit', handleAddTeacher);
+            document.getElementById('editTeacherForm').addEventListener('submit', handleUpdateTeacher);
             document.getElementById('enrollForm').addEventListener('submit', handleEnroll);
             document.getElementById('uploadBtn').addEventListener('click', handleExcelUpload);
+            document.getElementById('addCourseForm').addEventListener('submit', handleAddCourse);
+            document.getElementById('editCourseForm').addEventListener('submit', handleUpdateCourse);
         }
 
         async function handleLogin(e) {
             e.preventDefault();
             const res = await fetch(API_URL + '?action=login', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ usuario: document.getElementById('usuario').value, password: document.getElementById('password').value }), credentials: 'include' });
             const data = await res.json();
-            if (data.success) {
-                localStorage.setItem('user_rol', data.user.rol);
-                updateUI(data.user);
-                loadAllData();
-            } else { document.getElementById('loginMsg').textContent = data.message; }
+            if (data.success) { localStorage.setItem('user_rol', data.user.rol); updateUI(data.user); loadAllData(); } 
+            else { document.getElementById('loginMsg').textContent = data.message; }
         }
 
         async function handleLogout() {
             await fetch(API_URL + '?action=logout', { method: 'POST', credentials: 'include' });
-            localStorage.removeItem('user_rol');
-            window.location.reload();
+            localStorage.removeItem('user_rol'); window.location.reload();
         }
 
         function checkSession() {
-            if (localStorage.getItem('user_rol')) {
-                updateUI({ usuario: 'Admin', rol: localStorage.getItem('user_rol') });
-                loadAllData();
-            }
+            if (localStorage.getItem('user_rol')) { updateUI({ usuario: 'Admin', rol: localStorage.getItem('user_rol') }); loadAllData(); }
         }
 
         function updateUI(user) {
@@ -291,35 +293,30 @@
             document.getElementById('view-' + viewName).style.display = 'block';
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             event.currentTarget.classList.add('active');
-            
-            // Load specific data when switching
             if (viewName === 'docentes') renderTeacherTable();
-            if (viewName === 'cursos') renderScheduleTable();
+            if (viewName === 'cursos') { renderCourseTable(); renderScheduleTable(); }
             if (viewName === 'matriculas') loadEnrollOptions();
             if (viewName === 'reportes') loadReports();
         }
 
         async function loadAllData() {
-            // Students
             const sRes = await fetch(API_URL + '?action=get_students', { credentials: 'include' });
             const sData = await sRes.json();
             if (sData.success) { allStudents = sData.students; renderStudentTable(); }
 
-            // Courses for filters
             const cRes = await fetch(API_URL + '?action=get_courses', { credentials: 'include' });
             const cData = await cRes.json();
             if (cData.success) {
+                allCourses = cData.courses;
                 const sel = document.getElementById('courseFilter');
                 sel.innerHTML = '<option value="">Todos los cursos</option>';
                 cData.courses.forEach(c => sel.innerHTML += '<option value="' + c.nombre + '">' + c.nombre + '</option>');
             }
 
-            // Teachers
             const tRes = await fetch(API_URL + '?action=get_teachers', { credentials: 'include' });
             const tData = await tRes.json();
             if (tData.success) allTeachers = tData.teachers;
 
-            // Schedules
             const hRes = await fetch(API_URL + '?action=get_schedules', { credentials: 'include' });
             const hData = await hRes.json();
             if (hData.success) allSchedules = hData.schedules;
@@ -341,9 +338,15 @@
             
             filtered.forEach(s => {
                 const badge = s.matricula_estado === 'Aprobado' ? 'bg-aprobado' : s.matricula_estado === 'Reprobado' ? 'bg-reprobado' : 'bg-en-curso';
-                tbody.innerHTML += '<tr><td class="ps-4 fw-bold text-muted">#' + s.id_estudiante + '</td><td>' + s.cedula + '</td><td class="fw-bold">' + s.nombres + ' ' + s.apellidos + '</td><td>' + (s.telefono||'-') + '</td><td>' + (s.curso_nombre||'-') + '</td><td><span class="badge-status ' + badge + '">' + s.matricula_estado + '</span></td><td><span class="badge-status bg-activo">Activo</span></td></tr>';
+                let actionCol = '<span class="badge-status bg-activo">Activo</span>';
+                if (s.matricula_estado === 'Aprobado') {
+                    actionCol = `<button class="btn btn-sm btn-action" onclick="downloadCert(${s.id_estudiante})"><i class="fas fa-certificate"></i> Certificado</button>`;
+                }
+                tbody.innerHTML += '<tr><td class="ps-4 fw-bold text-muted">#' + s.id_estudiante + '</td><td>' + s.cedula + '</td><td class="fw-bold">' + s.nombres + ' ' + s.apellidos + '</td><td>' + (s.telefono||'-') + '</td><td>' + (s.curso_nombre||'-') + '</td><td><span class="badge-status ' + badge + '">' + s.matricula_estado + '</span></td><td>' + actionCol + '</td></tr>';
             });
         }
+
+        function downloadCert(id) { window.open(API_URL + '?action=generate_certificate&id_estudiante=' + id, '_blank'); }
 
         function renderTeacherTable() {
             const tbody = document.getElementById('teacherTableBody');
@@ -351,10 +354,56 @@
             const filtered = allTeachers.filter(t => !term || t.nombres.toLowerCase().includes(term) || t.apellidos.toLowerCase().includes(term) || t.cedula.includes(term));
             
             tbody.innerHTML = '';
-            if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">Sin resultados</td></tr>'; return; }
+            if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted">Sin resultados</td></tr>'; return; }
             
             filtered.forEach(t => {
-                tbody.innerHTML += '<tr><td class="ps-4 fw-bold text-muted">#' + t.id_docente + '</td><td>' + t.cedula + '</td><td>' + t.nombres + '</td><td>' + t.apellidos + '</td><td>' + t.especialidad + '</td><td>' + (t.telefono||'-') + '</td><td>' + (t.correo||'-') + '</td></tr>';
+                tbody.innerHTML += '<tr><td class="ps-4 fw-bold text-muted">#' + t.id_docente + '</td><td>' + t.cedula + '</td><td>' + t.nombres + '</td><td>' + t.apellidos + '</td><td>' + t.especialidad + '</td><td>' + (t.telefono||'-') + '</td><td>' + (t.correo||'-') + '</td><td><button class="btn btn-icon btn-edit" onclick="openEditTeacher(' + t.id_docente + ')"><i class="fas fa-edit"></i></button><button class="btn btn-icon btn-delete" onclick="deleteTeacher(' + t.id_docente + ')"><i class="fas fa-trash"></i></button></td></tr>';
+            });
+        }
+
+        function openEditTeacher(id) {
+            const t = allTeachers.find(x => x.id_docente === id);
+            if (!t) return;
+            document.getElementById('editTeacherId').value = t.id_docente;
+            document.getElementById('editTeacherCedula').value = t.cedula;
+            document.getElementById('editTeacherNombres').value = t.nombres;
+            document.getElementById('editTeacherApellidos').value = t.apellidos;
+            document.getElementById('editTeacherEspecialidad').value = t.especialidad;
+            document.getElementById('editTeacherTelefono').value = t.telefono;
+            document.getElementById('editTeacherCorreo').value = t.correo;
+            new bootstrap.Modal(document.getElementById('editTeacherModal')).show();
+        }
+
+        async function handleAddTeacher(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target); const data = Object.fromEntries(formData.entries());
+            const res = await fetch(API_URL + '?action=add_teacher', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data), credentials: 'include' });
+            const result = await res.json(); alert(result.message);
+            if (result.success) { bootstrap.Modal.getInstance(document.getElementById('addTeacherModal')).hide(); e.target.reset(); loadAllData(); }
+        }
+
+        async function handleUpdateTeacher(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target); const data = Object.fromEntries(formData.entries());
+            const res = await fetch(API_URL + '?action=update_teacher', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data), credentials: 'include' });
+            const result = await res.json(); alert(result.message);
+            if (result.success) { bootstrap.Modal.getInstance(document.getElementById('editTeacherModal')).hide(); loadAllData(); }
+        }
+
+        async function deleteTeacher(id) {
+            if (!confirm('¿Estás seguro de eliminar este docente?')) return;
+            const res = await fetch(API_URL + '?action=delete_teacher', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ id_docente: id }), credentials: 'include' });
+            const result = await res.json(); alert(result.message);
+            if (result.success) loadAllData();
+        }
+
+        function renderCourseTable() {
+            const tbody = document.getElementById('courseTableBody');
+            tbody.innerHTML = '';
+            if (!allCourses.length) { tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Sin cursos registrados</td></tr>'; return; }
+            
+            allCourses.forEach(c => {
+                tbody.innerHTML += '<tr><td class="ps-4 fw-bold text-muted">#' + c.id_curso + '</td><td class="fw-bold">' + c.nombre + '</td><td>' + c.nivel + '</td><td>' + c.duracion_horas + ' hrs</td><td>$' + c.costo + '</td><td><button class="btn btn-icon btn-edit" onclick="openEditCourse(' + c.id_curso + ')"><i class="fas fa-edit"></i></button><button class="btn btn-icon btn-delete" onclick="deleteCourse(' + c.id_curso + ')"><i class="fas fa-trash"></i></button></td></tr>';
             });
         }
 
@@ -362,41 +411,58 @@
             const tbody = document.getElementById('scheduleTableBody');
             tbody.innerHTML = '';
             if (!allSchedules.length) { tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">Sin horarios registrados</td></tr>'; return; }
-            
-            allSchedules.forEach(h => {
-                tbody.innerHTML += '<tr><td class="ps-4 fw-bold">' + h.curso + '</td><td>' + h.dia + '</td><td>' + h.horario + '</td><td>' + h.docente + '</td><td>' + h.aula + '</td></tr>';
-            });
+            allSchedules.forEach(h => { tbody.innerHTML += '<tr><td class="ps-4 fw-bold">' + h.curso + '</td><td>' + h.dia + '</td><td>' + h.horario + '</td><td>' + h.docente + '</td><td>' + h.aula + '</td></tr>'; });
+        }
+
+        function openEditCourse(id) {
+            const c = allCourses.find(x => x.id_curso === id);
+            if (!c) return;
+            document.getElementById('editCourseId').value = c.id_curso;
+            document.getElementById('editCourseNombre').value = c.nombre;
+            document.getElementById('editCourseDuracion').value = c.duracion_horas;
+            document.getElementById('editCourseCosto').value = c.costo;
+            document.getElementById('editCourseNivel').value = c.nivel;
+            new bootstrap.Modal(document.getElementById('editCourseModal')).show();
+        }
+
+        async function handleAddCourse(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target); const data = Object.fromEntries(formData.entries());
+            const res = await fetch(API_URL + '?action=add_course', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data), credentials: 'include' });
+            const result = await res.json(); alert(result.message);
+            if (result.success) { bootstrap.Modal.getInstance(document.getElementById('addCourseModal')).hide(); e.target.reset(); loadAllData(); }
+        }
+
+        async function handleUpdateCourse(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target); const data = Object.fromEntries(formData.entries());
+            const res = await fetch(API_URL + '?action=update_course', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data), credentials: 'include' });
+            const result = await res.json(); alert(result.message);
+            if (result.success) { bootstrap.Modal.getInstance(document.getElementById('editCourseModal')).hide(); loadAllData(); }
+        }
+
+        async function deleteCourse(id) {
+            if (!confirm('¿Estás seguro de eliminar este curso? Se perderán las matrículas asociadas.')) return;
+            const res = await fetch(API_URL + '?action=delete_course', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ id_curso: id }), credentials: 'include' });
+            const result = await res.json(); alert(result.message);
+            if (result.success) loadAllData();
         }
 
         async function loadEnrollOptions() {
-            const sSel = document.getElementById('enrollStudent');
             const cSel = document.getElementById('enrollCourse');
-            sSel.innerHTML = '<option value="">Seleccione estudiante...</option>';
             cSel.innerHTML = '<option value="">Seleccione curso...</option>';
-            
-            allStudents.forEach(s => sSel.innerHTML += '<option value="' + s.id_estudiante + '">' + s.nombres + ' ' + s.apellidos + ' (' + s.cedula + ')</option>');
-            
             const cRes = await fetch(API_URL + '?action=get_courses', { credentials: 'include' });
             const cData = await cRes.json();
-            if (cData.success) cData.courses.forEach(c => cSel.innerHTML += '<option value="' + c.id_curso + '">' + c.nombre + '</option>');
+            if (cData.success) cData.courses.forEach(c => cSel.innerHTML += '<option value="' + c.id_curso + '">' + c.nombre + ' ($' + (c.costo || '0') + ')</option>');
         }
 
         async function handleEnroll(e) {
             e.preventDefault();
-            const res = await fetch(API_URL + '?action=enroll_student', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ id_estudiante: document.getElementById('enrollStudent').value, id_curso: document.getElementById('enrollCourse').value }), credentials: 'include' });
-            const data = await res.json();
-            alert(data.message);
-            if (data.success) { e.target.reset(); loadAllData(); }
-        }
-
-        async function handleAddTeacher(e) {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const data = Object.fromEntries(formData.entries());
-            const res = await fetch(API_URL + '?action=add_teacher', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data), credentials: 'include' });
-            const result = await res.json();
-            alert(result.message);
-            if (result.success) { bootstrap.Modal.getInstance(document.getElementById('addTeacherModal')).hide(); e.target.reset(); loadAllData(); }
+            const formData = new FormData(e.target); const data = Object.fromEntries(formData.entries());
+            data.id_curso = document.getElementById('enrollCourse').value;
+            const res = await fetch(API_URL + '?action=register_and_enroll', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data), credentials: 'include' });
+            const result = await res.json(); alert(result.message);
+            if (result.success) { e.target.reset(); loadAllData(); switchView('estudiantes'); }
         }
 
         async function loadReports() {
@@ -408,12 +474,8 @@
                 document.getElementById('repCurso').textContent = data.stats.en_curso;
                 document.getElementById('repAprob').textContent = data.stats.aprobados;
                 document.getElementById('repRepro').textContent = data.stats.reprobados;
-                
-                const tbody = document.getElementById('reportTableBody');
-                tbody.innerHTML = '';
-                data.course_stats.forEach(c => {
-                    tbody.innerHTML += '<tr><td class="ps-4 fw-bold">' + c.nombre + '</td><td>' + c.total + '</td><td style="color:#1565c0">' + c.en_curso + '</td><td style="color:#6a1b9a">' + c.aprobados + '</td><td style="color:#c62828">' + c.reprobados + '</td></tr>';
-                });
+                const tbody = document.getElementById('reportTableBody'); tbody.innerHTML = '';
+                data.course_stats.forEach(c => { tbody.innerHTML += '<tr><td class="ps-4 fw-bold">' + c.nombre + '</td><td>' + c.total + '</td><td style="color:#1565c0">' + c.en_curso + '</td><td style="color:#6a1b9a">' + c.aprobados + '</td><td style="color:#c62828">' + c.reprobados + '</td></tr>'; });
             }
         }
 
@@ -421,94 +483,41 @@
             const file = document.getElementById('excelFile').files[0];
             if (!file) return alert('Selecciona un archivo');
             const formData = new FormData(); formData.append('results_file', file);
-            const btn = document.getElementById('uploadBtn');
-            btn.disabled = true; btn.textContent = 'Procesando...';
-            
+            const btn = document.getElementById('uploadBtn'); btn.disabled = true; btn.textContent = 'Procesando...';
             const res = await fetch(API_URL + '?action=upload_excel', { method: 'POST', body: formData, credentials: 'include' });
-            const data = await res.json();
-            alert(data.message);
+            const data = await res.json(); alert(data.message);
             if (data.success) { bootstrap.Modal.getInstance(document.getElementById('uploadModal')).hide(); loadAllData(); }
             btn.disabled = false; btn.textContent = 'Procesar';
         }
 
-        // --- FUNCIÓN DE EXPORTACIÓN REAL ---
         async function exportData(type) {
             try {
-                // 1. Obtener datos frescos de la API
                 const res = await fetch(API_URL + '?action=get_export_data', { credentials: 'include' });
                 const data = await res.json();
                 if (!data.success) return alert('Error al obtener datos para exportar');
 
                 if (type === 'excel') {
-                    // --- EXPORTAR A EXCEL ---
                     const wb = XLSX.utils.book_new();
-                    
-                    // Hoja 1: Estudiantes
-                    const wsEst = XLSX.utils.json_to_sheet(data.students.map(s => ({
-                        ID: s.id_estudiante, Cédula: s.cedula, Nombres: s.nombres, Apellidos: s.apellidos,
-                        Curso: s.curso || 'Sin asignar', Estado: s.estado || 'Sin matrícula'
-                    })));
+                    const wsEst = XLSX.utils.json_to_sheet(data.students.map(s => ({ ID: s.id_estudiante, Cédula: s.cedula, Nombres: s.nombres, Apellidos: s.apellidos, Curso: s.curso || 'Sin asignar', Estado: s.estado || 'Sin matrícula' })));
                     XLSX.utils.book_append_sheet(wb, wsEst, "Estudiantes");
-
-                    // Hoja 2: Docentes
-                    const wsDoc = XLSX.utils.json_to_sheet(data.teachers.map(t => ({
-                        ID: t.id_docente, Cédula: t.cedula, Nombres: t.nombres, Apellidos: t.apellidos,
-                        Especialidad: t.especialidad, Teléfono: t.telefono, Correo: t.correo
-                    })));
+                    const wsDoc = XLSX.utils.json_to_sheet(data.teachers.map(t => ({ ID: t.id_docente, Cédula: t.cedula, Nombres: t.nombres, Apellidos: t.apellidos, Especialidad: t.especialidad, Teléfono: t.telefono, Correo: t.correo })));
                     XLSX.utils.book_append_sheet(wb, wsDoc, "Docentes");
-
-                    // Hoja 3: Resumen Estadístico
-                    const wsStats = XLSX.utils.json_to_sheet([
-                        { Concepto: 'Total Estudiantes', Cantidad: data.stats.total_students },
-                        { Concepto: 'En Curso', Cantidad: data.stats.en_curso },
-                        { Concepto: 'Aprobados', Cantidad: data.stats.aprobados },
-                        { Concepto: 'Reprobados', Cantidad: data.stats.reprobados }
-                    ]);
+                    const wsStats = XLSX.utils.json_to_sheet([{ Concepto: 'Total Estudiantes', Cantidad: data.stats.total_students }, { Concepto: 'En Curso', Cantidad: data.stats.en_curso }, { Concepto: 'Aprobados', Cantidad: data.stats.aprobados }, { Concepto: 'Reprobados', Cantidad: data.stats.reprobados }]);
                     XLSX.utils.book_append_sheet(wb, wsStats, "Resumen");
-
                     XLSX.writeFile(wb, "Reporte_Academia_Fashion.xlsx");
-
                 } else if (type === 'pdf') {
-                    // --- EXPORTAR A PDF ---
                     const { jsPDF } = window.jspdf;
                     const doc = new jsPDF({ orientation: 'landscape' });
-                    
-                    // Encabezado
-                    doc.setFontSize(18);
-                    doc.setTextColor(74, 20, 140); // Morado corporativo
+                    doc.setFontSize(18); doc.setTextColor(74, 20, 140);
                     doc.text("ACADEMIA FASHION - REPORTE GENERAL", 14, 20);
-                    doc.setFontSize(10);
-                    doc.setTextColor(100);
+                    doc.setFontSize(10); doc.setTextColor(100);
                     doc.text("Generado el: " + new Date().toLocaleString(), 14, 26);
-
-                    // Tabla de Estudiantes
-                    doc.autoTable({
-                        startY: 35,
-                        head: [['ID', 'Cédula', 'Nombres', 'Apellidos', 'Curso', 'Estado']],
-                        body: data.students.map(s => [s.id_estudiante, s.cedula, s.nombres, s.apellidos, s.curso || '-', s.estado || '-']),
-                        theme: 'grid',
-                        headStyles: { fillColor: [74, 20, 140] },
-                        alternateRowStyles: { fillColor: [243, 229, 245] }
-                    });
-
-                    // Nueva página para Docentes
-                    doc.addPage();
-                    doc.setFontSize(16);
-                    doc.text("LISTADO DE DOCENTES", 14, 20);
-                    doc.autoTable({
-                        startY: 30,
-                        head: [['ID', 'Cédula', 'Nombres', 'Especialidad', 'Teléfono']],
-                        body: data.teachers.map(t => [t.id_docente, t.cedula, t.nombres + ' ' + t.apellidos, t.especialidad, t.telefono]),
-                        theme: 'grid',
-                        headStyles: { fillColor: [74, 20, 140] }
-                    });
-
+                    doc.autoTable({ startY: 35, head: [['ID', 'Cédula', 'Nombres', 'Apellidos', 'Curso', 'Estado']], body: data.students.map(s => [s.id_estudiante, s.cedula, s.nombres, s.apellidos, s.curso || '-', s.estado || '-']), theme: 'grid', headStyles: { fillColor: [74, 20, 140] }, alternateRowStyles: { fillColor: [243, 229, 245] } });
+                    doc.addPage(); doc.setFontSize(16); doc.text("LISTADO DE DOCENTES", 14, 20);
+                    doc.autoTable({ startY: 30, head: [['ID', 'Cédula', 'Nombres', 'Especialidad', 'Teléfono']], body: data.teachers.map(t => [t.id_docente, t.cedula, t.nombres + ' ' + t.apellidos, t.especialidad, t.telefono]), theme: 'grid', headStyles: { fillColor: [74, 20, 140] } });
                     doc.save("Reporte_Academia_Fashion.pdf");
                 }
-            } catch (err) {
-                console.error(err);
-                alert('Error al generar el archivo: ' + err.message);
-            }
+            } catch (err) { console.error(err); alert('Error al generar el archivo: ' + err.message); }
         }
     </script>
 </body>
