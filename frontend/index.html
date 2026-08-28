@@ -756,6 +756,11 @@
             enrollForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const data = Object.fromEntries(new FormData(enrollForm).entries());
+                
+                // Prevenir enviar cadenas de texto vacías a Postgres
+                if (!data.fecha_nacimiento || data.fecha_nacimiento.trim() === "") delete data.fecha_nacimiento;
+                if (!data.direccion || data.direccion.trim() === "") delete data.direccion;
+
                 const res = await apiCall('register_and_enroll', 'POST', data);
                 alert(res ? res.message : 'Error al matricular');
                 if (res && res.success) {

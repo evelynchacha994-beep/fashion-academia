@@ -287,8 +287,8 @@ switch ($action) {
         $apellidos = trim($data['apellidos'] ?? '');
         $telefono = trim($data['telefono'] ?? '');
         $correo = trim($data['correo'] ?? '');
-        $fecha_nacimiento = !empty($data['fecha_nacimiento']) ? $data['fecha_nacimiento'] : null;
-        $direccion = !empty($data['direccion']) ? trim($data['direccion']) : null;
+        $fecha_nacimiento = trim($data['fecha_nacimiento'] ?? '');
+        $direccion = trim($data['direccion'] ?? '');
 
         if (empty($cedula) || empty($id_curso) || empty($nombres) || empty($apellidos)) {
             echo json_encode(['success' => false, 'message' => 'Por favor completa los campos obligatorios: Cédula, Nombres, Apellidos y Curso']);
@@ -304,8 +304,8 @@ switch ($action) {
             $id_est = $stmtCheck->fetchColumn();
 
             if ($id_est) {
-                // Actualizar datos del estudiante existente
-                $stmtUpdate = $conn->prepare("UPDATE estudiantes SET nombres = :n, apellidos = :a, fecha_nacimiento = :fn, telefono = :t, correo = :co, direccion = :dir, estado = 'Activo' WHERE id_estudiante = :id");
+                // Actualizar datos del estudiante existente (NULLIF convierte '' a NULL automáticamente en Postgres)
+                $stmtUpdate = $conn->prepare("UPDATE estudiantes SET nombres = :n, apellidos = :a, fecha_nacimiento = NULLIF(:fn, '')::date, telefono = :t, correo = :co, direccion = NULLIF(:dir, ''), estado = 'Activo' WHERE id_estudiante = :id");
                 $stmtUpdate->execute([
                     ':n'   => $nombres,
                     ':a'   => $apellidos,
@@ -316,8 +316,8 @@ switch ($action) {
                     ':id'  => $id_est
                 ]);
             } else {
-                // Insertar nuevo estudiante con todos los campos de la tabla
-                $stmtEst = $conn->prepare("INSERT INTO estudiantes (cedula, nombres, apellidos, fecha_nacimiento, telefono, correo, direccion, estado) VALUES (:c, :n, :a, :fn, :t, :co, :dir, 'Activo') RETURNING id_estudiante");
+                // Insertar nuevo estudiante (NULLIF convierte '' a NULL automáticamente en Postgres)
+                $stmtEst = $conn->prepare("INSERT INTO estudiantes (cedula, nombres, apellidos, fecha_nacimiento, telefono, correo, direccion, estado) VALUES (:c, :n, :a, NULLIF(:fn, '')::date, :t, :co, NULLIF(:dir, ''), 'Activo') RETURNING id_estudiante");
                 $stmtEst->execute([
                     ':c'   => $cedula,
                     ':n'   => $nombres,
