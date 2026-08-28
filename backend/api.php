@@ -5,6 +5,7 @@
 // ==========================================
 
 header('Content-Type: application/json');
+
 // CORS Configurado para Producción y Local
 $allowedOrigin = getenv('FRONTEND_URL') ?: 'http://localhost:8086';
 header("Access-Control-Allow-Origin: $allowedOrigin");
@@ -51,11 +52,8 @@ try {
 // --- SISTEMA DE AUTENTICACIÓN POR TOKEN ---
 function checkAuth() {
     $headers = getallheaders();
-    // Buscamos el token en el header Authorization
     $authHeader = $headers['Authorization'] ?? '';
-    
     // Token simple para demostración (En producción real usar JWT)
-    // El frontend enviará "Bearer super_secret_token_2026"
     if ($authHeader === 'Bearer super_secret_token_2026') {
         return true;
     }
@@ -83,13 +81,12 @@ switch ($action) {
         }
 
         if ($validPass) {
-            // Actualizar último acceso
             $conn->prepare("UPDATE usuarios SET ultimo_acceso = NOW() WHERE id_usuario = :id")->execute([':id' => $userRow['id_usuario']]);
             
             // DEVOLVER TOKEN AL FRONTEND
             echo json_encode([
                 'success' => true, 
-                'token' => 'super_secret_token_2026', // Este es el token que usará el frontend
+                'token' => 'super_secret_token_2026', 
                 'user' => ['usuario' => $userRow['usuario'], 'rol' => $userRow['rol']]
             ]);
         } else {
@@ -98,7 +95,6 @@ switch ($action) {
         break;
 
     case 'logout':
-        // En sistema de tokens, el logout lo maneja el frontend borrando el token
         echo json_encode(['success' => true]);
         break;
 
@@ -114,7 +110,7 @@ switch ($action) {
         echo json_encode(['success' => true, 'students' => $conn->query($sql)->fetchAll()]);
         break;
 
-    // ==================== DOCENTES (CRUD COMPLETO) ====================
+    // ==================== DOCENTES ====================
     case 'get_teachers':
         if (!checkAuth()) { http_response_code(401); echo json_encode(['success' => false, 'message' => 'No autorizado']); exit; }
         echo json_encode(['success' => true, 'teachers' => $conn->query("SELECT * FROM docentes ORDER BY id_docente ASC")->fetchAll()]);
@@ -155,7 +151,7 @@ switch ($action) {
         }
         break;
 
-    // ==================== CURSOS Y HORARIOS (CRUD COMPLETO) ====================
+    // ==================== CURSOS Y HORARIOS ====================
     case 'get_courses':
         if (!checkAuth()) { http_response_code(401); echo json_encode(['success' => false, 'message' => 'No autorizado']); exit; }
         echo json_encode(['success' => true, 'courses' => $conn->query("SELECT id_curso, nombre, nivel, duracion_horas, costo, descripcion FROM cursos ORDER BY nombre ASC")->fetchAll()]);
@@ -207,37 +203,25 @@ switch ($action) {
         }
         break;
 
-    // ==================== MATRÍCULAS Y REGISTRO ====================
+    // ==================== MATRÍCULAS ====================
     case 'register_and_enroll':
         if (!checkAuth()) { http_response_code(401); echo json_encode(['success' => false, 'message' => 'No autorizado']); exit; }
         $data = json_decode(file_get_contents('php://input'), true);
-        
         try {
             $conn->beginTransaction();
-
             $stmtEst = $conn->prepare("INSERT INTO estudiantes (cedula, nombres, apellidos, telefono, correo, estado) VALUES (:c, :n, :a, :t, :co, 'Activo') RETURNING id_estudiante");
-            $stmtEst->execute([
-                ':c' => $data['cedula'], ':n' => $data['nombres'], ':a' => $data['apellidos'], 
-                ':t' => $data['telefono'], ':co' => $data['correo']
-            ]);
+            $stmtEst->execute([':c' => $data['cedula'], ':n' => $data['nombres'], ':a' => $data['apellidos'], ':t' => $data['telefono'], ':co' => $data['correo']]);
             $new_id_est = $stmtEst->fetchColumn();
-
             $stmtHor = $conn->prepare("SELECT id_horario FROM horarios WHERE id_curso = :cid LIMIT 1");
             $stmtHor->execute([':cid' => $data['id_curso']]);
             $id_horario = $stmtHor->fetchColumn();
-
             if (!$id_horario) throw new Exception("No hay horarios disponibles para este curso");
-
             $stmtMat = $conn->prepare("INSERT INTO matriculas (id_estudiante, id_curso, id_horario, fecha_matricula, estado) VALUES (:est, :cur, :hor, CURRENT_DATE, 'En Curso')");
             $stmtMat->execute([':est' => $new_id_est, ':cur' => $data['id_curso'], ':hor' => $id_horario]);
-
             $costo = $conn->query("SELECT costo FROM cursos WHERE id_curso = {$data['id_curso']}")->fetchColumn();
-            $conn->prepare("INSERT INTO pagos (id_matricula, monto, metodo_pago, referencia) VALUES (currval('matriculas_id_matricula_seq'), :monto, 'Efectivo', 'MAT-NEW')")
-                 ->execute([':monto' => $costo]);
-
+            $conn->prepare("INSERT INTO pagos (id_matricula, monto, metodo_pago, referencia) VALUES (currval('matriculas_id_matricula_seq'), :monto, 'Efectivo', 'MAT-NEW')")->execute([':monto' => $costo]);
             $conn->commit();
             echo json_encode(['success' => true, 'message' => 'Estudiante registrado y matriculado exitosamente']);
-
         } catch (Exception $e) {
             $conn->rollBack();
             $msg = strpos($e->getMessage(), 'duplicate') !== false ? 'La cédula ya está registrada' : $e->getMessage();
@@ -245,7 +229,7 @@ switch ($action) {
         }
         break;
 
-    // ==================== REPORTES Y EXPORTACIÓN ====================
+    // ==================== REPORTES ====================
     case 'get_reports':
         if (!checkAuth()) { http_response_code(401); echo json_encode(['success' => false, 'message' => 'No autorizado']); exit; }
         $stats = [
@@ -267,12 +251,18 @@ switch ($action) {
         echo json_encode(['success' => true, 'students' => $students, 'teachers' => $teachers, 'stats' => $stats]);
         break;
 
-    // ==================== GENERAR CERTIFICADO PDF ====================
+    // ==================== CERTIFICADO PDF ====================
     case 'generate_certificate':
-        if (!checkAuth()) { http_response_code(401); exit; }
+        // Para PDF, validamos token por GET param si viene del navegador directamente
+        $tokenGet = $_GET['token'] ?? '';
+        $headers = getallheaders();
+        $tokenHeader = $headers['Authorization'] ?? '';
         
+        if ($tokenGet !== 'super_secret_token_2026' && $tokenHeader !== 'Bearer super_secret_token_2026') {
+            http_response_code(401); exit;
+        }
+
         $id_est = $_GET['id_estudiante'] ?? 0;
-        
         $sql = "SELECT e.nombres, e.apellidos, e.cedula, c.nombre as curso, m.fecha_matricula 
                 FROM estudiantes e 
                 JOIN matriculas m ON e.id_estudiante = m.id_estudiante 

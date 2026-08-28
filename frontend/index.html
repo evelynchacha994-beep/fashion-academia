@@ -234,55 +234,40 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     const API_URL = 'https://fashion-academia-api.onrender.com/api.php';
     let currentFilter = { course: '', status: 'En Curso' };
     let allStudents = [], allTeachers = [], allCourses = [], allSchedules = [], reportData = {};
 
-    // --- FUNCIONES DE AUTENTICACIÓN (TOKEN) ---
-    function getToken() {
-        return localStorage.getItem('fashion_token');
-    }
+    // --- FUNCIONES DE TOKEN ---
+    function getToken() { return localStorage.getItem('fashion_token'); }
+    function setToken(t) { localStorage.setItem('fashion_token', t); }
+    function clearToken() { localStorage.removeItem('fashion_token'); }
 
-    function setToken(token) {
-        localStorage.setItem('fashion_token', token);
-    }
-
-    function clearToken() {
-        localStorage.removeItem('fashion_token');
-    }
-
-    // Función Fetch Mejorada con Token
+    // Fetch Wrapper con Token
     async function apiCall(action, method = 'GET', data = null) {
-        const token = getToken();
-        const headers = {
-            'Content-Type': 'application/json',
-            'Authorization': token ? `Bearer ${token}` : ''
+        const headers = { 
+            'Content-Type': 'application/json', 
+            'Authorization': `Bearer ${getToken()}` 
         };
-
         const options = { method, headers };
         if (data) options.body = JSON.stringify(data);
 
         try {
-            // Si es GET, añadimos la action a la URL
-            const url = method === 'GET' ? `${API_URL}?action=${action}` : `${API_URL}?action=${action}`;
-            const response = await fetch(url, options);
-            
-            if (response.status === 401) {
-                alert('Sesión expirada. Por favor inicie sesión nuevamente.');
-                clearToken();
-                window.location.reload();
-                return null;
+            const res = await fetch(`${API_URL}?action=${action}`, options);
+            if (res.status === 401) { 
+                alert('Sesión expirada'); 
+                clearToken(); 
+                window.location.reload(); 
+                return null; 
             }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Error API:', error);
-            return { success: false, message: 'Error de conexión' };
+            return await res.json();
+        } catch (e) { 
+            console.error(e); 
+            return { success: false, message: 'Error de conexión' }; 
         }
     }
-
-    // --- LÓGICA DE LA APP ---
 
     document.addEventListener('DOMContentLoaded', () => { 
         checkSession(); 
@@ -305,13 +290,11 @@
         const usuario = document.getElementById('loginUser').value;
         const password = document.getElementById('loginPass').value;
         const errorMsg = document.getElementById('loginError');
-
         errorMsg.textContent = '';
 
         const res = await apiCall('login', 'POST', { usuario, password });
-
         if (res && res.success) {
-            setToken(res.token); // Guardamos el token
+            setToken(res.token);
             checkSession();
         } else {
             errorMsg.textContent = res ? res.message : 'Error al conectar';
@@ -324,118 +307,57 @@
     }
 
     async function loadDashboardData() {
-        // Cargar todo en paralelo
-        const [studentsRes, teachersRes, coursesRes, schedulesRes, reportsRes] = await Promise.all([
-            apiCall('get_students'),
-            apiCall('get_teachers'),
-            apiCall('get_courses'),
-            apiCall('get_schedules'),
-            apiCall('get_reports')
+        const [s, t, c, h, r] = await Promise.all([
+            apiCall('get_students'), apiCall('get_teachers'), apiCall('get_courses'), apiCall('get_schedules'), apiCall('get_reports')
         ]);
+        if (s && s.success) allStudents = s.students;
+        if (t && t.success) allTeachers = t.teachers;
+        if (c && c.success) allCourses = c.courses;
+        if (h && h.success) allSchedules = h.schedules;
+        if (r && r.success) reportData = r;
 
-        if (studentsRes && studentsRes.success) allStudents = studentsRes.students;
-        if (teachersRes && teachersRes.success) allTeachers = teachersRes.teachers;
-        if (coursesRes && coursesRes.success) allCourses = coursesRes.courses;
-        if (schedulesRes && schedulesRes.success) allSchedules = schedulesRes.schedules;
-        if (reportsRes && reportsRes.success) reportData = reportsRes;
-
-        renderStudentTable();
-        renderTeacherTable();
-        renderCourseTable();
-        renderScheduleTable();
-        renderReports();
-        populateCourseSelects();
+        renderStudentTable(); renderTeacherTable(); renderCourseTable(); renderScheduleTable(); renderReports(); populateCourseSelects();
     }
-
-    // ... (Mantén tus funciones de renderizado renderStudentTable, renderTeacherTable, etc. igual que antes) ...
-    // PERO asegúrate de que si hacen fetch manualmente, usen la función apiCall o incluyan el header.
-    
-    // Ejemplo de cómo deberían quedar tus funciones de renderizado si usaban fetch antes:
-    // Ya no necesitan fetch interno si usamos loadDashboardData arriba.
-    // Si tienes botones que recargan datos específicos, usa apiCall('accion').
 
     function renderStudentTable() {
         const tbody = document.querySelector('#studentTable tbody');
         tbody.innerHTML = '';
-        
         let filtered = allStudents.filter(s => {
             const matchStatus = currentFilter.status ? s.matricula_estado === currentFilter.status : true;
             const matchCourse = currentFilter.course ? s.curso_nombre === currentFilter.course : true;
-            const matchSearch = document.getElementById('searchInput').value.toLowerCase();
-            const searchMatch = !matchSearch || 
-                s.nombres.toLowerCase().includes(matchSearch) || 
-                s.apellidos.toLowerCase().includes(matchSearch) || 
-                s.cedula.includes(matchSearch);
-            return matchStatus && matchCourse && searchMatch;
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const matchSearch = !search || s.nombres.toLowerCase().includes(search) || s.cedula.includes(search);
+            return matchStatus && matchCourse && matchSearch;
         });
 
-        if (filtered.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center">Sin resultados</td></tr>';
-            return;
-        }
+        if (filtered.length === 0) { tbody.innerHTML = '<tr><td colspan="7" class="text-center">Sin resultados</td></tr>'; return; }
 
         filtered.forEach(s => {
             const tr = document.createElement('tr');
-            let certBtn = '';
-            if (s.matricula_estado === 'Aprobado') {
-                certBtn = `<button class="btn btn-sm btn-success" onclick="window.open('${API_URL}?action=generate_certificate&id_estudiante=${s.id_estudiante}&token=${getToken()}')">PDF</button>`;
-            } else {
-                certBtn = `<span class="badge bg-secondary">${s.matricula_estado || 'Sin matrícula'}</span>`;
-            }
-
-            tr.innerHTML = `
-                <td>${s.id_estudiante}</td>
-                <td>${s.cedula}</td>
-                <td>${s.nombres} ${s.apellidos}</td>
-                <td>${s.telefono}</td>
-                <td>${s.curso_nombre || '-'}</td>
-                <td><span class="badge ${s.matricula_estado === 'En Curso' ? 'bg-primary' : (s.matricula_estado === 'Aprobado' ? 'bg-success' : 'bg-danger')}">${s.matricula_estado || '-'}</span></td>
-                <td>${certBtn}</td>
-            `;
+            let certBtn = s.matricula_estado === 'Aprobado' 
+                ? `<button class="btn btn-sm btn-success" onclick="window.open('${API_URL}?action=generate_certificate&id_estudiante=${s.id_estudiante}&token=${getToken()}')">PDF</button>`
+                : `<span class="badge bg-secondary">${s.matricula_estado || '-'}</span>`;
+            
+            tr.innerHTML = `<td>${s.id_estudiante}</td><td>${s.cedula}</td><td>${s.nombres} ${s.apellidos}</td><td>${s.telefono}</td><td>${s.curso_nombre || '-'}</td><td><span class="badge ${s.matricula_estado === 'En Curso' ? 'bg-primary' : (s.matricula_estado === 'Aprobado' ? 'bg-success' : 'bg-danger')}">${s.matricula_estado || '-'}</span></td><td>${certBtn}</td>`;
             tbody.appendChild(tr);
         });
     }
 
-    // ... Copia y pega aquí el resto de tus funciones (renderTeacherTable, renderCourseTable, etc.) ...
-    // Asegúrate de reemplazar cualquier "fetch(API_URL..." dentro de ellas por "apiCall(...)"
-    
-    function setupEvents() {
-        document.getElementById('loginForm').addEventListener('submit', handleLogin);
-        document.getElementById('logoutBtnSidebar').addEventListener('click', handleLogout);
-        document.getElementById('searchInput').addEventListener('input', renderStudentTable);
-        document.getElementById('courseFilter').addEventListener('change', (e) => { 
-            currentFilter.course = e.target.value; 
-            renderStudentTable(); 
-        });
-        
-        ['btnEnCurso', 'btnAprobados', 'btnReprobados'].forEach(id => {
-            document.getElementById(id).addEventListener('click', (e) => {
-                document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-                const map = { 'btnEnCurso': 'En Curso', 'btnAprobados': 'Aprobado', 'btnReprobados': 'Reprobado' };
-                currentFilter.status = map[id];
-                renderStudentTable();
-            });
-        });
-
-        // ... (Resto de tus event listeners para modales, etc.) ...
-    }
-
-    function populateCourseSelects() {
-        const selects = [document.getElementById('courseFilter'), document.getElementById('enrollCourse')];
-        selects.forEach(sel => {
-            if(!sel) return;
-            sel.innerHTML = '<option value="">Todos los cursos</option>';
-            allCourses.forEach(c => {
-                sel.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`;
-            });
-        });
+    function renderTeacherTable() { 
+        const tbody = document.querySelector('#teacherTable tbody');
+        tbody.innerHTML = allTeachers.map(t => `<tr><td>${t.id_docente}</td><td>${t.cedula}</td><td>${t.nombres}</td><td>${t.apellidos}</td><td>${t.especialidad}</td><td>${t.telefono}</td><td>${t.correo}</td><td><button class="btn btn-sm btn-danger">Eliminar</button></td></tr>`).join(''); 
     }
     
-    // Funciones placeholder para que no rompa si faltan en tu código original
-    function renderTeacherTable() { document.querySelector('#teacherTable tbody').innerHTML = allTeachers.map(t => `<tr><td>${t.id_docente}</td><td>${t.cedula}</td><td>${t.nombres}</td><td>${t.apellidos}</td><td>${t.especialidad}</td><td>${t.telefono}</td><td>${t.correo}</td><td>Acciones</td></tr>`).join(''); }
-    function renderCourseTable() { document.querySelector('#courseTable tbody').innerHTML = allCourses.map(c => `<tr><td>${c.id_curso}</td><td>${c.nombre}</td><td>${c.nivel}</td><td>${c.duracion_horas}h</td><td>$${c.costo}</td><td>Acciones</td></tr>`).join(''); }
-    function renderScheduleTable() { document.querySelector('#scheduleTable tbody').innerHTML = allSchedules.map(h => `<tr><td>${h.curso}</td><td>${h.dia}</td><td>${h.horario}</td><td>${h.docente}</td><td>${h.aula}</td></tr>`).join(''); }
+    function renderCourseTable() { 
+        const tbody = document.querySelector('#courseTable tbody');
+        tbody.innerHTML = allCourses.map(c => `<tr><td>${c.id_curso}</td><td>${c.nombre}</td><td>${c.nivel}</td><td>${c.duracion_horas}h</td><td>$${c.costo}</td><td><button class="btn btn-sm btn-danger">Eliminar</button></td></tr>`).join(''); 
+    }
+    
+    function renderScheduleTable() { 
+        const tbody = document.querySelector('#scheduleTable tbody');
+        tbody.innerHTML = allSchedules.map(h => `<tr><td>${h.curso}</td><td>${h.dia}</td><td>${h.horario}</td><td>${h.docente}</td><td>${h.aula}</td></tr>`).join(''); 
+    }
+    
     function renderReports() { 
         if(reportData.stats) {
             document.getElementById('statTotal').textContent = reportData.stats.total_students;
@@ -443,8 +365,41 @@
             document.getElementById('statAprobados').textContent = reportData.stats.aprobados;
             document.getElementById('statReprobados').textContent = reportData.stats.reprobados;
         }
+        const tbody = document.querySelector('#reportTable tbody');
+        if(tbody && reportData.course_stats) {
+            tbody.innerHTML = reportData.course_stats.map(c => `<tr><td>${c.nombre}</td><td>${c.total}</td><td>${c.en_curso}</td><td>${c.aprobados}</td><td>${c.reprobados}</td></tr>`).join('');
+        }
     }
 
+    function populateCourseSelects() {
+        const sel = document.getElementById('courseFilter');
+        const selEnroll = document.getElementById('enrollCourse');
+        if(sel) {
+            sel.innerHTML = '<option value="">Todos los cursos</option>';
+            allCourses.forEach(c => sel.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`);
+        }
+        if(selEnroll) {
+            selEnroll.innerHTML = '<option value="">Seleccione curso...</option>';
+            allCourses.forEach(c => selEnroll.innerHTML += `<option value="${c.id_curso}">${c.nombre}</option>`);
+        }
+    }
+
+    function setupEvents() {
+        document.getElementById('loginForm').addEventListener('submit', handleLogin);
+        document.getElementById('logoutBtnSidebar').addEventListener('click', handleLogout);
+        document.getElementById('searchInput').addEventListener('input', renderStudentTable);
+        document.getElementById('courseFilter').addEventListener('change', (e) => { currentFilter.course = e.target.value; renderStudentTable(); });
+        
+        ['btnEnCurso', 'btnAprobados', 'btnReprobados'].forEach(id => {
+            const btn = document.getElementById(id);
+            if(btn) btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                const map = { 'btnEnCurso': 'En Curso', 'btnAprobados': 'Aprobado', 'btnReprobados': 'Reprobado' };
+                currentFilter.status = map[id]; renderStudentTable();
+            });
+        });
+    }
 </script>
 </body>
 </html>
