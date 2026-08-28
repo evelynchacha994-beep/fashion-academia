@@ -3,9 +3,12 @@
 // API BACKEND - FASHION ACADEMIA (FINAL VERSION + CERTIFICADO MODERNO)
 // Compatible: Docker Local + Render/Neon Remote
 // ==========================================
-
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
+
+// Configuración segura de CORS para producción
+$allowedOrigin = getenv('FRONTEND_URL') ?: 'https://fashion-academiafrontend.netlify.app';
+header("Access-Control-Allow-Origin: $allowedOrigin");
+
 header('Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
 header('Access-Control-Allow-Credentials: true');
