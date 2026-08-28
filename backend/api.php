@@ -182,7 +182,7 @@ switch ($action) {
 
     case 'get_schedules':
         if (!checkAuth()) { http_response_code(401); echo json_encode(['success' => false, 'message' => 'No autorizado']); exit; }
-        $sql = "SELECT h.id_horario, h.dia, CONCAT(h.hora_inicio, ' - ', h.hora_fin) as horario, 
+        $sql = "SELECT h.id_horario, h.id_curso, h.id_docente, h.dia, h.hora_inicio, h.hora_fin, CONCAT(h.hora_inicio, ' - ', h.hora_fin) as horario, 
                 c.nombre as curso, d.nombres || ' ' || d.apellidos as docente, h.aula
                 FROM horarios h 
                 JOIN cursos c ON h.id_curso = c.id_curso 
@@ -240,6 +240,26 @@ switch ($action) {
                 ':a'   => $data['aula'] ?? 'Aula Principal'
             ]);
             echo json_encode(['success' => true, 'message' => 'Horario asignado correctamente']);
+        } catch (PDOException $e) {
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        }
+        break;
+
+    case 'update_schedule':
+        if (!checkAuth()) { http_response_code(401); echo json_encode(['success' => false, 'message' => 'No autorizado']); exit; }
+        $data = json_decode(file_get_contents('php://input'), true);
+        try {
+            $stmt = $conn->prepare("UPDATE horarios SET id_curso=:c, id_docente=:d, dia=:dia, hora_inicio=:hi, hora_fin=:hf, aula=:a WHERE id_horario=:id");
+            $stmt->execute([
+                ':c'   => $data['id_curso'],
+                ':d'   => $data['id_docente'],
+                ':dia' => $data['dia'],
+                ':hi'  => $data['hora_inicio'],
+                ':hf'  => $data['hora_fin'],
+                ':a'   => $data['aula'] ?? 'Aula Principal',
+                ':id'  => $data['id_horario']
+            ]);
+            echo json_encode(['success' => true, 'message' => 'Horario actualizado correctamente']);
         } catch (PDOException $e) {
             echo json_encode(['success' => false, 'message' => $e->getMessage()]);
         }

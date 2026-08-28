@@ -232,6 +232,15 @@
     <!-- Add Schedule Modal -->
     <div class="modal fade" id="addScheduleModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow"><div class="modal-header bg-light border-0"><h5 class="modal-title fw-bold"><i class="fas fa-calendar-plus text-primary me-2"></i>Asignar Horario</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><form id="addScheduleForm"><div class="mb-3"><label class="form-label fw-bold">Curso *</label><select id="scheduleCourseSelect" name="id_curso" class="form-select" required></select></div><div class="mb-3"><label class="form-label fw-bold">Docente *</label><select id="scheduleTeacherSelect" name="id_docente" class="form-select" required></select></div><div class="row g-2 mb-3"><div class="col-4"><label class="form-label fw-bold">Día *</label><select name="dia" class="form-select" required><option>Lunes</option><option>Martes</option><option>Miércoles</option><option>Jueves</option><option>Viernes</option><option>Sábado</option></select></div><div class="col-4"><label class="form-label fw-bold">Hora Inicio *</label><input type="time" name="hora_inicio" class="form-control" value="08:00" required></div><div class="col-4"><label class="form-label fw-bold">Hora Fin *</label><input type="time" name="hora_fin" class="form-control" value="12:00" required></div></div><div class="mb-3"><label class="form-label fw-bold">Aula / Laboratorio</label><input type="text" name="aula" class="form-control" placeholder="Ej: Lab Peluquería / Aula 1" required></div><button type="submit" class="btn btn-action w-100 mt-3">Guardar Horario</button></form></div></div></div></div>
 
+    <!-- Edit Teacher Modal -->
+    <div class="modal fade" id="editTeacherModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow"><div class="modal-header bg-light border-0"><h5 class="modal-title fw-bold"><i class="fas fa-edit text-warning me-2"></i>Editar Docente</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><form id="editTeacherForm"><input type="hidden" name="id_docente" id="editTeacherId"><div class="row g-3"><div class="col-6"><label class="form-label small fw-bold">Cédula</label><input type="text" name="cedula" id="editTeacherCedula" class="form-control" required maxlength="10"></div><div class="col-6"><label class="form-label small fw-bold">Teléfono</label><input type="text" name="telefono" id="editTeacherTelefono" class="form-control" required maxlength="10"></div><div class="col-6"><label class="form-label small fw-bold">Nombres</label><input type="text" name="nombres" id="editTeacherNombres" class="form-control" required></div><div class="col-6"><label class="form-label small fw-bold">Apellidos</label><input type="text" name="apellidos" id="editTeacherApellidos" class="form-control" required></div><div class="col-12"><label class="form-label small fw-bold">Especialidad</label><input type="text" name="especialidad" id="editTeacherEspecialidad" class="form-control" required></div><div class="col-12"><label class="form-label small fw-bold">Correo</label><input type="email" name="correo" id="editTeacherCorreo" class="form-control" required></div></div><button type="submit" class="btn btn-action w-100 mt-4">Actualizar Docente</button></form></div></div></div></div>
+
+    <!-- Edit Course Modal -->
+    <div class="modal fade" id="editCourseModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow"><div class="modal-header bg-light border-0"><h5 class="modal-title fw-bold"><i class="fas fa-edit text-warning me-2"></i>Editar Curso</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><form id="editCourseForm"><input type="hidden" name="id_curso" id="editCourseId"><div class="mb-3"><label class="form-label fw-bold">Nombre del Curso</label><input type="text" name="nombre" id="editCourseNombre" class="form-control" required></div><div class="row g-2"><div class="col-6"><label class="form-label fw-bold">Duración (Horas)</label><input type="number" name="duracion" id="editCourseDuracion" class="form-control" required></div><div class="col-6"><label class="form-label fw-bold">Costo ($)</label><input type="number" step="0.01" name="costo" id="editCourseCosto" class="form-control" required></div></div><div class="mb-3 mt-3"><label class="form-label fw-bold">Nivel</label><select name="nivel" id="editCourseNivel" class="form-select"><option>Básico</option><option>Intermedio</option><option>Avanzado</option></select></div><button type="submit" class="btn btn-action w-100">Actualizar Curso</button></form></div></div></div></div>
+
+    <!-- Edit Schedule Modal -->
+    <div class="modal fade" id="editScheduleModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow"><div class="modal-header bg-light border-0"><h5 class="modal-title fw-bold"><i class="fas fa-edit text-warning me-2"></i>Editar Horario</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><form id="editScheduleForm"><input type="hidden" name="id_horario" id="editScheduleId"><div class="mb-3"><label class="form-label fw-bold">Curso *</label><select id="editScheduleCourseSelect" name="id_curso" class="form-select" required></select></div><div class="mb-3"><label class="form-label fw-bold">Docente *</label><select id="editScheduleTeacherSelect" name="id_docente" class="form-select" required></select></div><div class="row g-2 mb-3"><div class="col-4"><label class="form-label fw-bold">Día *</label><select id="editScheduleDia" name="dia" class="form-select" required><option>Lunes</option><option>Martes</option><option>Miércoles</option><option>Jueves</option><option>Viernes</option><option>Sábado</option></select></div><div class="col-4"><label class="form-label fw-bold">Hora Inicio *</label><input type="time" id="editScheduleHoraInicio" name="hora_inicio" class="form-control" required></div><div class="col-4"><label class="form-label fw-bold">Hora Fin *</label><input type="time" id="editScheduleHoraFin" name="hora_fin" class="form-control" required></div></div><div class="mb-3"><label class="form-label fw-bold">Aula / Laboratorio</label><input type="text" id="editScheduleAula" name="aula" class="form-control" required></div><button type="submit" class="btn btn-action w-100 mt-3">Actualizar Horario</button></form></div></div></div></div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     const API_URL = 'https://fashion-academia-api.onrender.com/api.php';
@@ -369,21 +378,21 @@
         const tbody = document.getElementById('teacherTableBody');
         if (!tbody) return;
         if (allTeachers.length === 0) { tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted">Sin docentes registrados</td></tr>'; return; }
-        tbody.innerHTML = allTeachers.map(t => `<tr><td>${t.id_docente}</td><td>${t.cedula}</td><td>${t.nombres}</td><td>${t.apellidos}</td><td>${t.especialidad || '-'}</td><td>${t.telefono || '-'}</td><td>${t.correo || '-'}</td><td><button class="btn btn-sm btn-danger" onclick="deleteTeacher(${t.id_docente})">Eliminar</button></td></tr>`).join(''); 
+        tbody.innerHTML = allTeachers.map(t => `<tr><td>${t.id_docente}</td><td>${t.cedula}</td><td>${t.nombres}</td><td>${t.apellidos}</td><td>${t.especialidad || '-'}</td><td>${t.telefono || '-'}</td><td>${t.correo || '-'}</td><td><button class="btn btn-sm btn-edit me-1 py-1 px-2" onclick="editTeacher(${t.id_docente})"><i class="fas fa-edit me-1"></i>Editar</button><button class="btn btn-sm btn-danger py-1 px-2" onclick="deleteTeacher(${t.id_docente})"><i class="fas fa-trash-alt me-1"></i>Borrar</button></td></tr>`).join(''); 
     }
     
     function renderCourseTable() { 
         const tbody = document.getElementById('courseTableBody');
         if (!tbody) return;
         if (allCourses.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Sin cursos registrados</td></tr>'; return; }
-        tbody.innerHTML = allCourses.map(c => `<tr><td>${c.id_curso}</td><td>${c.nombre}</td><td>${c.nivel}</td><td>${c.duracion_horas}h</td><td>$${c.costo}</td><td><button class="btn btn-sm btn-danger" onclick="deleteCourse(${c.id_curso})">Eliminar</button></td></tr>`).join(''); 
+        tbody.innerHTML = allCourses.map(c => `<tr><td>${c.id_curso}</td><td>${c.nombre}</td><td>${c.nivel}</td><td>${c.duracion_horas}h</td><td>$${c.costo}</td><td><button class="btn btn-sm btn-edit me-1 py-1 px-2" onclick="editCourse(${c.id_curso})"><i class="fas fa-edit me-1"></i>Editar</button><button class="btn btn-sm btn-danger py-1 px-2" onclick="deleteCourse(${c.id_curso})"><i class="fas fa-trash-alt me-1"></i>Borrar</button></td></tr>`).join(''); 
     }
     
     function renderScheduleTable() { 
         const tbody = document.getElementById('scheduleTableBody');
         if (!tbody) return;
         if (allSchedules.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Sin horarios asignados</td></tr>'; return; }
-        tbody.innerHTML = allSchedules.map(h => `<tr><td class="ps-4">${h.curso}</td><td>${h.dia}</td><td>${h.horario}</td><td>${h.docente}</td><td>${h.aula}</td><td><button class="btn btn-sm btn-danger-outline py-1 px-2" onclick="deleteSchedule(${h.id_horario})">Eliminar</button></td></tr>`).join(''); 
+        tbody.innerHTML = allSchedules.map(h => `<tr><td class="ps-4">${h.curso}</td><td>${h.dia}</td><td>${h.horario}</td><td>${h.docente}</td><td>${h.aula}</td><td><button class="btn btn-sm btn-edit me-1 py-1 px-2" onclick="editSchedule(${h.id_horario})"><i class="fas fa-edit me-1"></i>Editar</button><button class="btn btn-sm btn-danger-outline py-1 px-2" onclick="deleteSchedule(${h.id_horario})"><i class="fas fa-trash-alt me-1"></i>Borrar</button></td></tr>`).join(''); 
     }
     
     function renderReports() { 
@@ -409,6 +418,8 @@
         const selEnroll = document.getElementById('enrollCourse');
         const selSchedCourse = document.getElementById('scheduleCourseSelect');
         const selSchedTeacher = document.getElementById('scheduleTeacherSelect');
+        const selEditSchedCourse = document.getElementById('editScheduleCourseSelect');
+        const selEditSchedTeacher = document.getElementById('editScheduleTeacherSelect');
 
         if(sel) {
             sel.innerHTML = '<option value="">Todos los cursos</option>';
@@ -426,6 +437,51 @@
             selSchedTeacher.innerHTML = '<option value="">Seleccione docente...</option>';
             allTeachers.forEach(t => selSchedTeacher.innerHTML += `<option value="${t.id_docente}">${t.nombres} ${t.apellidos}</option>`);
         }
+        if(selEditSchedCourse) {
+            selEditSchedCourse.innerHTML = '<option value="">Seleccione curso...</option>';
+            allCourses.forEach(c => selEditSchedCourse.innerHTML += `<option value="${c.id_curso}">${c.nombre}</option>`);
+        }
+        if(selEditSchedTeacher) {
+            selEditSchedTeacher.innerHTML = '<option value="">Seleccione docente...</option>';
+            allTeachers.forEach(t => selEditSchedTeacher.innerHTML += `<option value="${t.id_docente}">${t.nombres} ${t.apellidos}</option>`);
+        }
+    }
+
+    function editTeacher(id) {
+        const t = allTeachers.find(item => item.id_docente == id);
+        if (!t) return;
+        document.getElementById('editTeacherId').value = t.id_docente;
+        document.getElementById('editTeacherCedula').value = t.cedula;
+        document.getElementById('editTeacherNombres').value = t.nombres;
+        document.getElementById('editTeacherApellidos').value = t.apellidos;
+        document.getElementById('editTeacherEspecialidad').value = t.especialidad || '';
+        document.getElementById('editTeacherTelefono').value = t.telefono || '';
+        document.getElementById('editTeacherCorreo').value = t.correo || '';
+        new bootstrap.Modal(document.getElementById('editTeacherModal')).show();
+    }
+
+    function editCourse(id) {
+        const c = allCourses.find(item => item.id_curso == id);
+        if (!c) return;
+        document.getElementById('editCourseId').value = c.id_curso;
+        document.getElementById('editCourseNombre').value = c.nombre;
+        document.getElementById('editCourseDuracion').value = c.duracion_horas;
+        document.getElementById('editCourseCosto').value = c.costo;
+        document.getElementById('editCourseNivel').value = c.nivel;
+        new bootstrap.Modal(document.getElementById('editCourseModal')).show();
+    }
+
+    function editSchedule(id) {
+        const h = allSchedules.find(item => item.id_horario == id);
+        if (!h) return;
+        document.getElementById('editScheduleId').value = h.id_horario;
+        document.getElementById('editScheduleCourseSelect').value = h.id_curso;
+        document.getElementById('editScheduleTeacherSelect').value = h.id_docente;
+        document.getElementById('editScheduleDia').value = h.dia;
+        document.getElementById('editScheduleHoraInicio').value = h.hora_inicio || '08:00';
+        document.getElementById('editScheduleHoraFin').value = h.hora_fin || '12:00';
+        document.getElementById('editScheduleAula').value = h.aula || '';
+        new bootstrap.Modal(document.getElementById('editScheduleModal')).show();
     }
 
     async function deleteTeacher(id) {
@@ -576,7 +632,7 @@
                 const tbody = document.getElementById('teacherTableBody');
                 if (!tbody) return;
                 const filtered = allTeachers.filter(t => (t.nombres && t.nombres.toLowerCase().includes(val)) || (t.apellidos && t.apellidos.toLowerCase().includes(val)) || (t.cedula && t.cedula.includes(val)));
-                tbody.innerHTML = filtered.map(t => `<tr><td>${t.id_docente}</td><td>${t.cedula}</td><td>${t.nombres}</td><td>${t.apellidos}</td><td>${t.especialidad || '-'}</td><td>${t.telefono || '-'}</td><td>${t.correo || '-'}</td><td><button class="btn btn-sm btn-danger" onclick="deleteTeacher(${t.id_docente})">Eliminar</button></td></tr>`).join('');
+                tbody.innerHTML = filtered.map(t => `<tr><td>${t.id_docente}</td><td>${t.cedula}</td><td>${t.nombres}</td><td>${t.apellidos}</td><td>${t.especialidad || '-'}</td><td>${t.telefono || '-'}</td><td>${t.correo || '-'}</td><td><button class="btn btn-sm btn-edit me-1 py-1 px-2" onclick="editTeacher(${t.id_docente})"><i class="fas fa-edit me-1"></i>Editar</button><button class="btn btn-sm btn-danger py-1 px-2" onclick="deleteTeacher(${t.id_docente})"><i class="fas fa-trash-alt me-1"></i>Borrar</button></td></tr>`).join('');
             });
         }
         
@@ -593,7 +649,7 @@
             });
         });
 
-        // Formulario Docente
+        // Formulario Crear Docente
         const addTeacherForm = document.getElementById('addTeacherForm');
         if (addTeacherForm) {
             addTeacherForm.addEventListener('submit', async (e) => {
@@ -610,7 +666,23 @@
             });
         }
 
-        // Formulario Curso
+        // Formulario Editar Docente
+        const editTeacherForm = document.getElementById('editTeacherForm');
+        if (editTeacherForm) {
+            editTeacherForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const data = Object.fromEntries(new FormData(editTeacherForm).entries());
+                const res = await apiCall('update_teacher', 'POST', data);
+                alert(res ? res.message : 'Error al actualizar docente');
+                if (res && res.success) {
+                    const modalEl = document.getElementById('editTeacherModal');
+                    if (modalEl) bootstrap.Modal.getInstance(modalEl)?.hide();
+                    loadDashboardData();
+                }
+            });
+        }
+
+        // Formulario Crear Curso
         const addCourseForm = document.getElementById('addCourseForm');
         if (addCourseForm) {
             addCourseForm.addEventListener('submit', async (e) => {
@@ -627,7 +699,23 @@
             });
         }
 
-        // Formulario Horario
+        // Formulario Editar Curso
+        const editCourseForm = document.getElementById('editCourseForm');
+        if (editCourseForm) {
+            editCourseForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const data = Object.fromEntries(new FormData(editCourseForm).entries());
+                const res = await apiCall('update_course', 'POST', data);
+                alert(res ? res.message : 'Error al actualizar curso');
+                if (res && res.success) {
+                    const modalEl = document.getElementById('editCourseModal');
+                    if (modalEl) bootstrap.Modal.getInstance(modalEl)?.hide();
+                    loadDashboardData();
+                }
+            });
+        }
+
+        // Formulario Crear Horario
         const addScheduleForm = document.getElementById('addScheduleForm');
         if (addScheduleForm) {
             addScheduleForm.addEventListener('submit', async (e) => {
@@ -638,6 +726,22 @@
                 if (res && res.success) {
                     addScheduleForm.reset();
                     const modalEl = document.getElementById('addScheduleModal');
+                    if (modalEl) bootstrap.Modal.getInstance(modalEl)?.hide();
+                    loadDashboardData();
+                }
+            });
+        }
+
+        // Formulario Editar Horario
+        const editScheduleForm = document.getElementById('editScheduleForm');
+        if (editScheduleForm) {
+            editScheduleForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const data = Object.fromEntries(new FormData(editScheduleForm).entries());
+                const res = await apiCall('update_schedule', 'POST', data);
+                alert(res ? res.message : 'Error al actualizar horario');
+                if (res && res.success) {
+                    const modalEl = document.getElementById('editScheduleModal');
                     if (modalEl) bootstrap.Modal.getInstance(modalEl)?.hide();
                     loadDashboardData();
                 }
