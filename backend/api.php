@@ -7,8 +7,16 @@
 header('Content-Type: application/json');
 
 // CORS Configurado para Producción y Local
-$allowedOrigin = getenv('FRONTEND_URL') ?: 'http://localhost:8086';
-header("Access-Control-Allow-Origin: $allowedOrigin");
+$httpOrigin = $_SERVER['HTTP_ORIGIN'] ?? '';
+$allowedFrontend = getenv('FRONTEND_URL') ?: '';
+
+if (!empty($httpOrigin)) {
+    header("Access-Control-Allow-Origin: $httpOrigin");
+} elseif (!empty($allowedFrontend)) {
+    header("Access-Control-Allow-Origin: $allowedFrontend");
+} else {
+    header("Access-Control-Allow-Origin: *");
+}
 header('Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
 header('Access-Control-Allow-Credentials: true');
@@ -26,26 +34,41 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
-// --- CONFIGURACIÓN Y CONEXIÓN ROBUSTA ---
-$host = getenv('DB_HOST') ?: 'db';
-$db   = getenv('DB_NAME') ?: 'academia_fashion';
-$user = getenv('DB_USER') ?: 'evelyn';
-$pass = getenv('DB_PASS') ?: 'fashion2026';
+// --- CONFIGURACIÓN Y CONEXIÓN ROBUSTA A POSTGRESQL (NEON / RENDER / DOCKER) ---
+$dbUrl = getenv('DATABASE_URL') ?: getenv('POSTGRES_URL');
+
+if (!empty($dbUrl)) {
+    $dbopts = parse_url($dbUrl);
+    $host = $dbopts['host'] ?? 'db';
+    $port = $dbopts['port'] ?? '5432';
+    $db   = isset($dbopts['path']) ? ltrim($dbopts['path'], '/') : 'neondb';
+    $user = $dbopts['user'] ?? 'evelyn';
+    $pass = $dbopts['pass'] ?? 'fashion2026';
+} else {
+    $host = getenv('DB_HOST') ?: 'db';
+    $port = getenv('DB_PORT') ?: '5432';
+    $db   = getenv('DB_NAME') ?: 'neondb';
+    $user = getenv('DB_USER') ?: 'evelyn';
+    $pass = getenv('DB_PASS') ?: 'fashion2026';
+}
 
 try {
     $sslParam = '';
-    if (getenv('DATABASE_URL') || getenv('RENDER')) {
+    if (!empty($dbUrl) || getenv('RENDER') || getenv('DB_SSL') === 'true') {
         $sslParam = ';sslmode=require';
     }
     
-    $dsn = "pgsql:host=$host;dbname=$db$sslParam";
+    $dsn = "pgsql:host=$host;port=$port;dbname=$db$sslParam";
     $conn = new PDO($dsn, $user, $pass);
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     http_response_code(500);
     error_log("DB Connection Error: " . $e->getMessage());
-    echo json_encode(['success' => false, 'message' => 'Error crítico de conexión a BD']);
+    echo json_encode([
+        'success' => false, 
+        'message' => 'Error crítico de conexión a BD: ' . $e->getMessage()
+    ]);
     exit;
 }
 
