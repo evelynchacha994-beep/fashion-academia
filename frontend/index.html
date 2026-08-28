@@ -155,11 +155,14 @@
                     </div>
                 </div>
                 <div class="card-custom p-0 overflow-hidden mt-4">
-                    <div class="p-3 bg-light border-bottom"><h5 class="mb-0">Horarios Asignados</h5></div>
+                    <div class="p-3 bg-light border-bottom d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold"><i class="fas fa-clock text-primary me-2"></i>Horarios Asignados</h5>
+                        <button class="btn btn-sm btn-action" data-bs-toggle="modal" data-bs-target="#addScheduleModal"><i class="fas fa-plus me-1"></i>Asignar Horario</button>
+                    </div>
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
-                            <thead><tr><th class="ps-4">Curso</th><th>Día</th><th>Horario</th><th>Docente</th><th>Aula</th></tr></thead>
-                            <tbody id="scheduleTableBody"><tr><td colspan="5" class="text-center py-4 text-muted">Cargando horarios...</td></tr></tbody>
+                            <thead><tr><th class="ps-4">Curso</th><th>Día</th><th>Horario</th><th>Docente</th><th>Aula</th><th>Acciones</th></tr></thead>
+                            <tbody id="scheduleTableBody"><tr><td colspan="6" class="text-center py-4 text-muted">Cargando horarios...</td></tr></tbody>
                         </table>
                     </div>
                 </div>
@@ -223,14 +226,11 @@
     <!-- Add Teacher -->
     <div class="modal fade" id="addTeacherModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow"><div class="modal-header bg-light border-0"><h5 class="modal-title fw-bold"><i class="fas fa-user-plus text-primary me-2"></i>Nuevo Docente</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><form id="addTeacherForm"><div class="row g-3"><div class="col-6"><label class="form-label small fw-bold">Cédula</label><input type="text" name="cedula" class="form-control" required maxlength="10"></div><div class="col-6"><label class="form-label small fw-bold">Teléfono</label><input type="text" name="telefono" class="form-control" required maxlength="10"></div><div class="col-6"><label class="form-label small fw-bold">Nombres</label><input type="text" name="nombres" class="form-control" required></div><div class="col-6"><label class="form-label small fw-bold">Apellidos</label><input type="text" name="apellidos" class="form-control" required></div><div class="col-12"><label class="form-label small fw-bold">Especialidad</label><input type="text" name="especialidad" class="form-control" required></div><div class="col-12"><label class="form-label small fw-bold">Correo</label><input type="email" name="correo" class="form-control" required></div></div><button type="submit" class="btn btn-action w-100 mt-4">Guardar Docente</button></form></div></div></div></div>
 
-    <!-- Edit Teacher -->
-    <div class="modal fade" id="editTeacherModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow"><div class="modal-header bg-light border-0"><h5 class="modal-title fw-bold"><i class="fas fa-edit text-warning me-2"></i>Editar Docente</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><form id="editTeacherForm"><input type="hidden" name="id_docente" id="editTeacherId"><div class="row g-3"><div class="col-6"><label class="form-label small fw-bold">Cédula</label><input type="text" name="cedula" id="editTeacherCedula" class="form-control" required maxlength="10"></div><div class="col-6"><label class="form-label small fw-bold">Teléfono</label><input type="text" name="telefono" id="editTeacherTelefono" class="form-control" required maxlength="10"></div><div class="col-6"><label class="form-label small fw-bold">Nombres</label><input type="text" name="nombres" id="editTeacherNombres" class="form-control" required></div><div class="col-6"><label class="form-label small fw-bold">Apellidos</label><input type="text" name="apellidos" id="editTeacherApellidos" class="form-control" required></div><div class="col-12"><label class="form-label small fw-bold">Especialidad</label><input type="text" name="especialidad" id="editTeacherEspecialidad" class="form-control" required></div><div class="col-12"><label class="form-label small fw-bold">Correo</label><input type="email" name="correo" id="editTeacherCorreo" class="form-control" required></div></div><button type="submit" class="btn btn-action w-100 mt-4">Actualizar Docente</button></form></div></div></div></div>
-
     <!-- Add Course -->
     <div class="modal fade" id="addCourseModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content border-0 shadow"><div class="modal-header bg-light border-0"><h5 class="modal-title fw-bold"><i class="fas fa-plus text-primary me-2"></i>Nuevo Curso</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><form id="addCourseForm"><div class="mb-3"><label class="form-label fw-bold">Nombre del Curso</label><input type="text" name="nombre" class="form-control" required></div><div class="row g-2"><div class="col-6"><label class="form-label fw-bold">Duración (Horas)</label><input type="number" name="duracion" class="form-control" required></div><div class="col-6"><label class="form-label fw-bold">Costo ($)</label><input type="number" step="0.01" name="costo" class="form-control" required></div></div><div class="mb-3 mt-3"><label class="form-label fw-bold">Nivel</label><select name="nivel" class="form-select"><option>Básico</option><option>Intermedio</option><option>Avanzado</option></select></div><button type="submit" class="btn btn-action w-100">Crear Curso</button></form></div></div></div></div>
 
-    <!-- Edit Course -->
-    <div class="modal fade" id="editCourseModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content border-0 shadow"><div class="modal-header bg-light border-0"><h5 class="modal-title fw-bold"><i class="fas fa-edit text-warning me-2"></i>Editar Curso</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><form id="editCourseForm"><input type="hidden" name="id_curso" id="editCourseId"><div class="mb-3"><label class="form-label fw-bold">Nombre del Curso</label><input type="text" name="nombre" id="editCourseNombre" class="form-control" required></div><div class="row g-2"><div class="col-6"><label class="form-label fw-bold">Duración (Horas)</label><input type="number" name="duracion" id="editCourseDuracion" class="form-control" required></div><div class="col-6"><label class="form-label fw-bold">Costo ($)</label><input type="number" step="0.01" name="costo" id="editCourseCosto" class="form-control" required></div></div><div class="mb-3 mt-3"><label class="form-label fw-bold">Nivel</label><select name="nivel" id="editCourseNivel" class="form-select"><option>Básico</option><option>Intermedio</option><option>Avanzado</option></select></div><button type="submit" class="btn btn-action w-100">Actualizar Curso</button></form></div></div></div></div>
+    <!-- Add Schedule Modal -->
+    <div class="modal fade" id="addScheduleModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow"><div class="modal-header bg-light border-0"><h5 class="modal-title fw-bold"><i class="fas fa-calendar-plus text-primary me-2"></i>Asignar Horario</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><form id="addScheduleForm"><div class="mb-3"><label class="form-label fw-bold">Curso *</label><select id="scheduleCourseSelect" name="id_curso" class="form-select" required></select></div><div class="mb-3"><label class="form-label fw-bold">Docente *</label><select id="scheduleTeacherSelect" name="id_docente" class="form-select" required></select></div><div class="row g-2 mb-3"><div class="col-4"><label class="form-label fw-bold">Día *</label><select name="dia" class="form-select" required><option>Lunes</option><option>Martes</option><option>Miércoles</option><option>Jueves</option><option>Viernes</option><option>Sábado</option></select></div><div class="col-4"><label class="form-label fw-bold">Hora Inicio *</label><input type="time" name="hora_inicio" class="form-control" value="08:00" required></div><div class="col-4"><label class="form-label fw-bold">Hora Fin *</label><input type="time" name="hora_fin" class="form-control" value="12:00" required></div></div><div class="mb-3"><label class="form-label fw-bold">Aula / Laboratorio</label><input type="text" name="aula" class="form-control" placeholder="Ej: Lab Peluquería / Aula 1" required></div><button type="submit" class="btn btn-action w-100 mt-3">Guardar Horario</button></form></div></div></div></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
@@ -368,19 +368,22 @@
     function renderTeacherTable() { 
         const tbody = document.getElementById('teacherTableBody');
         if (!tbody) return;
+        if (allTeachers.length === 0) { tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted">Sin docentes registrados</td></tr>'; return; }
         tbody.innerHTML = allTeachers.map(t => `<tr><td>${t.id_docente}</td><td>${t.cedula}</td><td>${t.nombres}</td><td>${t.apellidos}</td><td>${t.especialidad || '-'}</td><td>${t.telefono || '-'}</td><td>${t.correo || '-'}</td><td><button class="btn btn-sm btn-danger" onclick="deleteTeacher(${t.id_docente})">Eliminar</button></td></tr>`).join(''); 
     }
     
     function renderCourseTable() { 
         const tbody = document.getElementById('courseTableBody');
         if (!tbody) return;
+        if (allCourses.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Sin cursos registrados</td></tr>'; return; }
         tbody.innerHTML = allCourses.map(c => `<tr><td>${c.id_curso}</td><td>${c.nombre}</td><td>${c.nivel}</td><td>${c.duracion_horas}h</td><td>$${c.costo}</td><td><button class="btn btn-sm btn-danger" onclick="deleteCourse(${c.id_curso})">Eliminar</button></td></tr>`).join(''); 
     }
     
     function renderScheduleTable() { 
         const tbody = document.getElementById('scheduleTableBody');
         if (!tbody) return;
-        tbody.innerHTML = allSchedules.map(h => `<tr><td>${h.curso}</td><td>${h.dia}</td><td>${h.horario}</td><td>${h.docente}</td><td>${h.aula}</td></tr>`).join(''); 
+        if (allSchedules.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Sin horarios asignados</td></tr>'; return; }
+        tbody.innerHTML = allSchedules.map(h => `<tr><td class="ps-4">${h.curso}</td><td>${h.dia}</td><td>${h.horario}</td><td>${h.docente}</td><td>${h.aula}</td><td><button class="btn btn-sm btn-danger-outline py-1 px-2" onclick="deleteSchedule(${h.id_horario})">Eliminar</button></td></tr>`).join(''); 
     }
     
     function renderReports() { 
@@ -404,6 +407,9 @@
     function populateCourseSelects() {
         const sel = document.getElementById('courseFilter');
         const selEnroll = document.getElementById('enrollCourse');
+        const selSchedCourse = document.getElementById('scheduleCourseSelect');
+        const selSchedTeacher = document.getElementById('scheduleTeacherSelect');
+
         if(sel) {
             sel.innerHTML = '<option value="">Todos los cursos</option>';
             allCourses.forEach(c => sel.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`);
@@ -411,6 +417,14 @@
         if(selEnroll) {
             selEnroll.innerHTML = '<option value="">Seleccione curso...</option>';
             allCourses.forEach(c => selEnroll.innerHTML += `<option value="${c.id_curso}">${c.nombre}</option>`);
+        }
+        if(selSchedCourse) {
+            selSchedCourse.innerHTML = '<option value="">Seleccione curso...</option>';
+            allCourses.forEach(c => selSchedCourse.innerHTML += `<option value="${c.id_curso}">${c.nombre}</option>`);
+        }
+        if(selSchedTeacher) {
+            selSchedTeacher.innerHTML = '<option value="">Seleccione docente...</option>';
+            allTeachers.forEach(t => selSchedTeacher.innerHTML += `<option value="${t.id_docente}">${t.nombres} ${t.apellidos}</option>`);
         }
     }
 
@@ -428,6 +442,123 @@
         loadDashboardData();
     }
 
+    async function deleteSchedule(id) {
+        if (!confirm('¿Seguro que deseas eliminar este horario?')) return;
+        const res = await apiCall('delete_schedule', 'POST', { id_horario: id });
+        alert(res ? res.message : 'Error al eliminar horario');
+        loadDashboardData();
+    }
+
+    async function exportData(type) {
+        const data = await apiCall('get_export_data');
+        if (!data || !data.success) {
+            alert('Error al obtener datos para exportación');
+            return;
+        }
+
+        if (type === 'excel') {
+            const wb = XLSX.utils.book_new();
+
+            // Hoja 1: Resumen General
+            const statsData = [
+                ["MÉTRICA", "CANTIDAD"],
+                ["Total Estudiantes", data.stats.total_students || 0],
+                ["Estudiantes En Curso", data.stats.en_curso || 0],
+                ["Estudiantes Aprobados", data.stats.aprobados || 0],
+                ["Estudiantes Reprobados", data.stats.reprobados || 0],
+                [],
+                ["ESTADÍSTICAS POR CURSO"],
+                ["Curso", "Total Matriculados", "En Curso", "Aprobados", "Reprobados"]
+            ];
+            if (reportData.course_stats) {
+                reportData.course_stats.forEach(cs => {
+                    statsData.push([cs.nombre, cs.total, cs.en_curso, cs.aprobados, cs.reprobados]);
+                });
+            }
+            const wsStats = XLSX.utils.aoa_to_sheet(statsData);
+            XLSX.utils.book_append_sheet(wb, wsStats, "Resumen General");
+
+            // Hoja 2: Lista Estudiantes
+            const studentsHeader = [["ID", "Cédula", "Nombres", "Apellidos", "Curso Actual", "Estado Matrícula"]];
+            const studentsRows = (data.students || []).map(s => [s.id_estudiante, s.cedula, s.nombres, s.apellidos, s.curso || '-', s.estado || '-']);
+            const wsStudents = XLSX.utils.aoa_to_sheet([...studentsHeader, ...studentsRows]);
+            XLSX.utils.book_append_sheet(wb, wsStudents, "Estudiantes");
+
+            // Hoja 3: Lista Docentes
+            const teachersHeader = [["ID", "Cédula", "Nombres", "Apellidos", "Especialidad", "Teléfono", "Correo"]];
+            const teachersRows = (data.teachers || []).map(t => [t.id_docente, t.cedula, t.nombres, t.apellidos, t.especialidad || '-', t.telefono || '-', t.correo || '-']);
+            const wsTeachers = XLSX.utils.aoa_to_sheet([...teachersHeader, ...teachersRows]);
+            XLSX.utils.book_append_sheet(wb, wsTeachers, "Docentes");
+
+            XLSX.writeFile(wb, `Reporte_General_Fashion_Academia_${new Date().toISOString().slice(0,10)}.xlsx`);
+        } else if (type === 'pdf') {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'pt', 'a4');
+
+            doc.setFontSize(18);
+            doc.setTextColor(106, 27, 154);
+            doc.text("FASHION ACADEMIA - REPORTE GENERAL", 40, 45);
+            doc.setFontSize(10);
+            doc.setTextColor(100);
+            doc.text(`Fecha de emisión: ${new Date().toLocaleDateString('es-ES')}`, 40, 62);
+
+            // Resumen Estadístico
+            doc.setFontSize(12);
+            doc.setTextColor(74, 20, 140);
+            doc.text("Resumen Estadístico", 40, 85);
+            doc.autoTable({
+                startY: 95,
+                head: [['Total Estudiantes', 'En Curso', 'Aprobados', 'Reprobados']],
+                body: [[data.stats.total_students || 0, data.stats.en_curso || 0, data.stats.aprobados || 0, data.stats.reprobados || 0]],
+                theme: 'grid',
+                headStyles: { fillColor: [106, 27, 154] }
+            });
+
+            // Estadísticas por Curso
+            let currentY = doc.lastAutoTable.finalY + 25;
+            doc.setFontSize(12);
+            doc.text("Estadísticas por Curso", 40, currentY);
+            const courseRows = (reportData.course_stats || []).map(cs => [cs.nombre, cs.total, cs.en_curso, cs.aprobados, cs.reprobados]);
+            doc.autoTable({
+                startY: currentY + 10,
+                head: [['Curso', 'Total Matriculados', 'En Curso', 'Aprobados', 'Reprobados']],
+                body: courseRows,
+                theme: 'striped',
+                headStyles: { fillColor: [74, 20, 140] }
+            });
+
+            // Tabla Estudiantes
+            currentY = doc.lastAutoTable.finalY + 25;
+            if (currentY > 700) { doc.addPage(); currentY = 40; }
+            doc.setFontSize(12);
+            doc.text("Listado de Estudiantes", 40, currentY);
+            const studentRows = (data.students || []).map(s => [s.id_estudiante, s.cedula, `${s.nombres} ${s.apellidos}`, s.curso || '-', s.estado || '-']);
+            doc.autoTable({
+                startY: currentY + 10,
+                head: [['ID', 'Cédula', 'Nombres Completos', 'Curso', 'Estado']],
+                body: studentRows,
+                theme: 'grid',
+                headStyles: { fillColor: [106, 27, 154] }
+            });
+
+            // Tabla Docentes
+            currentY = doc.lastAutoTable.finalY + 25;
+            if (currentY > 700) { doc.addPage(); currentY = 40; }
+            doc.setFontSize(12);
+            doc.text("Listado de Docentes", 40, currentY);
+            const teacherRows = (data.teachers || []).map(t => [t.id_docente, t.cedula, `${t.nombres} ${t.apellidos}`, t.especialidad || '-', t.telefono || '-']);
+            doc.autoTable({
+                startY: currentY + 10,
+                head: [['ID', 'Cédula', 'Docente', 'Especialidad', 'Teléfono']],
+                body: teacherRows,
+                theme: 'striped',
+                headStyles: { fillColor: [74, 20, 140] }
+            });
+
+            doc.save(`Reporte_General_Fashion_Academia_${new Date().toISOString().slice(0,10)}.pdf`);
+        }
+    }
+
     function setupEvents() {
         const loginForm = document.getElementById('loginForm');
         if (loginForm) loginForm.addEventListener('submit', handleLogin);
@@ -437,6 +568,17 @@
         
         const searchInput = document.getElementById('searchInput');
         if (searchInput) searchInput.addEventListener('input', renderStudentTable);
+
+        const searchTeacher = document.getElementById('searchTeacherInput');
+        if (searchTeacher) {
+            searchTeacher.addEventListener('input', () => {
+                const val = searchTeacher.value.toLowerCase();
+                const tbody = document.getElementById('teacherTableBody');
+                if (!tbody) return;
+                const filtered = allTeachers.filter(t => (t.nombres && t.nombres.toLowerCase().includes(val)) || (t.apellidos && t.apellidos.toLowerCase().includes(val)) || (t.cedula && t.cedula.includes(val)));
+                tbody.innerHTML = filtered.map(t => `<tr><td>${t.id_docente}</td><td>${t.cedula}</td><td>${t.nombres}</td><td>${t.apellidos}</td><td>${t.especialidad || '-'}</td><td>${t.telefono || '-'}</td><td>${t.correo || '-'}</td><td><button class="btn btn-sm btn-danger" onclick="deleteTeacher(${t.id_docente})">Eliminar</button></td></tr>`).join('');
+            });
+        }
         
         const courseFilter = document.getElementById('courseFilter');
         if (courseFilter) courseFilter.addEventListener('change', (e) => { currentFilter.course = e.target.value; renderStudentTable(); });
@@ -451,13 +593,63 @@
             });
         });
 
+        // Formulario Docente
+        const addTeacherForm = document.getElementById('addTeacherForm');
+        if (addTeacherForm) {
+            addTeacherForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const data = Object.fromEntries(new FormData(addTeacherForm).entries());
+                const res = await apiCall('add_teacher', 'POST', data);
+                alert(res ? res.message : 'Error al guardar docente');
+                if (res && res.success) {
+                    addTeacherForm.reset();
+                    const modalEl = document.getElementById('addTeacherModal');
+                    if (modalEl) bootstrap.Modal.getInstance(modalEl)?.hide();
+                    loadDashboardData();
+                }
+            });
+        }
+
+        // Formulario Curso
+        const addCourseForm = document.getElementById('addCourseForm');
+        if (addCourseForm) {
+            addCourseForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const data = Object.fromEntries(new FormData(addCourseForm).entries());
+                const res = await apiCall('add_course', 'POST', data);
+                alert(res ? res.message : 'Error al crear curso');
+                if (res && res.success) {
+                    addCourseForm.reset();
+                    const modalEl = document.getElementById('addCourseModal');
+                    if (modalEl) bootstrap.Modal.getInstance(modalEl)?.hide();
+                    loadDashboardData();
+                }
+            });
+        }
+
+        // Formulario Horario
+        const addScheduleForm = document.getElementById('addScheduleForm');
+        if (addScheduleForm) {
+            addScheduleForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const data = Object.fromEntries(new FormData(addScheduleForm).entries());
+                const res = await apiCall('add_schedule', 'POST', data);
+                alert(res ? res.message : 'Error al asignar horario');
+                if (res && res.success) {
+                    addScheduleForm.reset();
+                    const modalEl = document.getElementById('addScheduleModal');
+                    if (modalEl) bootstrap.Modal.getInstance(modalEl)?.hide();
+                    loadDashboardData();
+                }
+            });
+        }
+
         // Formulario Matrícula
         const enrollForm = document.getElementById('enrollForm');
         if (enrollForm) {
             enrollForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const formData = new FormData(enrollForm);
-                const data = Object.fromEntries(formData.entries());
+                const data = Object.fromEntries(new FormData(enrollForm).entries());
                 const res = await apiCall('register_and_enroll', 'POST', data);
                 alert(res ? res.message : 'Error al matricular');
                 if (res && res.success) {

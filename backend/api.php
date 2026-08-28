@@ -226,29 +226,96 @@ switch ($action) {
         }
         break;
 
+    case 'add_schedule':
+        if (!checkAuth()) { http_response_code(401); echo json_encode(['success' => false, 'message' => 'No autorizado']); exit; }
+        $data = json_decode(file_get_contents('php://input'), true);
+        try {
+            $stmt = $conn->prepare("INSERT INTO horarios (id_curso, id_docente, dia, hora_inicio, hora_fin, aula) VALUES (:c, :d, :dia, :hi, :hf, :a)");
+            $stmt->execute([
+                ':c'   => $data['id_curso'],
+                ':d'   => $data['id_docente'],
+                ':dia' => $data['dia'],
+                ':hi'  => $data['hora_inicio'],
+                ':hf'  => $data['hora_fin'],
+                ':a'   => $data['aula'] ?? 'Aula Principal'
+            ]);
+            echo json_encode(['success' => true, 'message' => 'Horario asignado correctamente']);
+        } catch (PDOException $e) {
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        }
+        break;
+
+    case 'delete_schedule':
+        if (!checkAuth()) { http_response_code(401); echo json_encode(['success' => false, 'message' => 'No autorizado']); exit; }
+        $data = json_decode(file_get_contents('php://input'), true);
+        try {
+            $conn->prepare("DELETE FROM horarios WHERE id_horario = :id")->execute([':id' => $data['id_horario']]);
+            echo json_encode(['success' => true, 'message' => 'Horario eliminado correctamente']);
+        } catch (PDOException $e) {
+            echo json_encode(['success' => false, 'message' => 'No se puede eliminar este horario']);
+        }
+        break;
+
     // ==================== MATRÍCULAS ====================
     case 'register_and_enroll':
         if (!checkAuth()) { http_response_code(401); echo json_encode(['success' => false, 'message' => 'No autorizado']); exit; }
         $data = json_decode(file_get_contents('php://input'), true);
         try {
             $conn->beginTransaction();
-            $stmtEst = $conn->prepare("INSERT INTO estudiantes (cedula, nombres, apellidos, telefono, correo, estado) VALUES (:c, :n, :a, :t, :co, 'Activo') RETURNING id_estudiante");
-            $stmtEst->execute([':c' => $data['cedula'], ':n' => $data['nombres'], ':a' => $data['apellidos'], ':t' => $data['telefono'], ':co' => $data['correo']]);
-            $new_id_est = $stmtEst->fetchColumn();
+            $cedula = trim($data['cedula']);
+            
+            // Verificar si la cédula ya existe
+            $stmtCheck = $conn->prepare("SELECT id_estudiante FROM estudiantes WHERE cedula = :c");
+            $stmtCheck->execute([':c' => $cedula]);
+            $existingEstId = $stmtCheck->fetchColumn();
+
+            if ($existingEstId) {
+                $id_est = $existingEstId;
+                $conn->prepare("UPDATE estudiantes SET nombres = :n, apellidos = :a, telefono = :t, correo = :co, estado = 'Activo' WHERE id_estudiante = :id")
+                     ->execute([':n' => $data['nombres'], ':a' => $data['apellidos'], ':t' => $data['telefono'], ':co' => $data['correo'], ':id' => $id_est]);
+            } else {
+                $stmtEst = $conn->prepare("INSERT INTO estudiantes (cedula, nombres, apellidos, telefono, correo, estado) VALUES (:c, :n, :a, :t, :co, 'Activo') RETURNING id_estudiante");
+                $stmtEst->execute([':c' => $cedula, ':n' => $data['nombres'], ':a' => $data['apellidos'], ':t' => $data['telefono'], ':co' => $data['correo']]);
+                $id_est = $stmtEst->fetchColumn();
+            }
+
+            // Buscar un horario para el curso elegido
             $stmtHor = $conn->prepare("SELECT id_horario FROM horarios WHERE id_curso = :cid LIMIT 1");
             $stmtHor->execute([':cid' => $data['id_curso']]);
             $id_horario = $stmtHor->fetchColumn();
-            if (!$id_horario) throw new Exception("No hay horarios disponibles para este curso");
-            $stmtMat = $conn->prepare("INSERT INTO matriculas (id_estudiante, id_curso, id_horario, fecha_matricula, estado) VALUES (:est, :cur, :hor, CURRENT_DATE, 'En Curso')");
-            $stmtMat->execute([':est' => $new_id_est, ':cur' => $data['id_curso'], ':hor' => $id_horario]);
-            $costo = $conn->query("SELECT costo FROM cursos WHERE id_curso = {$data['id_curso']}")->fetchColumn();
-            $conn->prepare("INSERT INTO pagos (id_matricula, monto, metodo_pago, referencia) VALUES (currval('matriculas_id_matricula_seq'), :monto, 'Efectivo', 'MAT-NEW')")->execute([':monto' => $costo]);
+
+            if (!$id_horario) {
+                // Si el curso no tiene horario asignado, crear un horario predeterminado automáticamente
+                $firstTeacher = $conn->query("SELECT id_docente FROM docentes ORDER BY id_docente ASC LIMIT 1")->fetchColumn();
+                if (!$firstTeacher) {
+                    $conn->query("INSERT INTO docentes (cedula, nombres, apellidos, especialidad) VALUES ('1700000000', 'Docente', 'General', 'General')");
+                    $firstTeacher = $conn->query("SELECT id_docente FROM docentes ORDER BY id_docente ASC LIMIT 1")->fetchColumn();
+                }
+                $stmtNewHor = $conn->prepare("INSERT INTO horarios (id_curso, id_docente, dia, hora_inicio, hora_fin, aula) VALUES (:cid, :did, 'Lunes', '08:00:00', '12:00:00', 'Aula Principal') RETURNING id_horario");
+                $stmtNewHor->execute([':cid' => $data['id_curso'], ':did' => $firstTeacher]);
+                $id_horario = $stmtNewHor->fetchColumn();
+            }
+
+            // Crear matrícula en estado 'En Curso'
+            $stmtMat = $conn->prepare("INSERT INTO matriculas (id_estudiante, id_curso, id_horario, fecha_matricula, estado) VALUES (:est, :cur, :hor, CURRENT_DATE, 'En Curso') RETURNING id_matricula");
+            $stmtMat->execute([':est' => $id_est, ':cur' => $data['id_curso'], ':hor' => $id_horario]);
+            $id_matricula = $stmtMat->fetchColumn();
+
+            // Registrar pago
+            $costoStmt = $conn->prepare("SELECT costo FROM cursos WHERE id_curso = :cid");
+            $costoStmt->execute([':cid' => $data['id_curso']]);
+            $costo = $costoStmt->fetchColumn() ?: 0;
+
+            $conn->prepare("INSERT INTO pagos (id_matricula, monto, metodo_pago, referencia) VALUES (:m, :monto, 'Efectivo', 'MAT-NEW')")
+                 ->execute([':m' => $id_matricula, ':monto' => $costo]);
+
             $conn->commit();
-            echo json_encode(['success' => true, 'message' => 'Estudiante registrado y matriculado exitosamente']);
+            echo json_encode(['success' => true, 'message' => 'Estudiante matriculado exitosamente']);
         } catch (Exception $e) {
-            $conn->rollBack();
-            $msg = strpos($e->getMessage(), 'duplicate') !== false ? 'La cédula ya está registrada' : $e->getMessage();
-            echo json_encode(['success' => false, 'message' => $msg]);
+            if ($conn->inTransaction()) {
+                $conn->rollBack();
+            }
+            echo json_encode(['success' => false, 'message' => 'Error al matricular: ' . $e->getMessage()]);
         }
         break;
 
