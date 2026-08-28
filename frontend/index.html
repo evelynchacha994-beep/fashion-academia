@@ -233,8 +233,6 @@
     <div class="modal fade" id="editCourseModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content border-0 shadow"><div class="modal-header bg-light border-0"><h5 class="modal-title fw-bold"><i class="fas fa-edit text-warning me-2"></i>Editar Curso</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><form id="editCourseForm"><input type="hidden" name="id_curso" id="editCourseId"><div class="mb-3"><label class="form-label fw-bold">Nombre del Curso</label><input type="text" name="nombre" id="editCourseNombre" class="form-control" required></div><div class="row g-2"><div class="col-6"><label class="form-label fw-bold">Duración (Horas)</label><input type="number" name="duracion" id="editCourseDuracion" class="form-control" required></div><div class="col-6"><label class="form-label fw-bold">Costo ($)</label><input type="number" step="0.01" name="costo" id="editCourseCosto" class="form-control" required></div></div><div class="mb-3 mt-3"><label class="form-label fw-bold">Nivel</label><select name="nivel" id="editCourseNivel" class="form-select"><option>Básico</option><option>Intermedio</option><option>Avanzado</option></select></div><button type="submit" class="btn btn-action w-100">Actualizar Curso</button></form></div></div></div></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     const API_URL = 'https://fashion-academia-api.onrender.com/api.php';
     let currentFilter = { course: '', status: 'En Curso' };
@@ -257,15 +255,14 @@
         try {
             const res = await fetch(`${API_URL}?action=${action}`, options);
             if (res.status === 401) { 
-                alert('Sesión expirada'); 
                 clearToken(); 
-                window.location.reload(); 
+                checkSession(); 
                 return null; 
             }
             return await res.json();
         } catch (e) { 
             console.error(e); 
-            return { success: false, message: 'Error de conexión' }; 
+            return { success: false, message: 'Error al conectar con la API' }; 
         }
     }
 
@@ -275,62 +272,87 @@
     });
 
     function checkSession() {
-        if (getToken()) {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('appScreen').style.display = 'flex';
+        const token = getToken();
+        const loginSec = document.getElementById('loginSection');
+        const dashSec = document.getElementById('dashboardSection');
+        if (token) {
+            if (loginSec) loginSec.style.display = 'none';
+            if (dashSec) dashSec.style.display = 'flex';
             loadDashboardData();
         } else {
-            document.getElementById('loginScreen').style.display = 'flex';
-            document.getElementById('appScreen').style.display = 'none';
+            if (loginSec) loginSec.style.display = 'flex';
+            if (dashSec) dashSec.style.display = 'none';
         }
     }
 
     async function handleLogin(e) {
         e.preventDefault();
-        const usuario = document.getElementById('loginUser').value;
-        const password = document.getElementById('loginPass').value;
-        const errorMsg = document.getElementById('loginError');
-        errorMsg.textContent = '';
+        const usuarioInput = document.getElementById('usuario');
+        const passwordInput = document.getElementById('password');
+        const errorMsg = document.getElementById('loginMsg');
+        
+        if (!usuarioInput || !passwordInput) return;
+        
+        const usuario = usuarioInput.value;
+        const password = passwordInput.value;
+        if (errorMsg) errorMsg.textContent = 'Verificando...';
 
         const res = await apiCall('login', 'POST', { usuario, password });
         if (res && res.success) {
             setToken(res.token);
+            if (errorMsg) errorMsg.textContent = '';
             checkSession();
         } else {
-            errorMsg.textContent = res ? res.message : 'Error al conectar';
+            if (errorMsg) errorMsg.textContent = res ? res.message : 'Error al conectar con la base de datos';
         }
     }
 
     function handleLogout() {
         clearToken();
-        window.location.reload();
+        checkSession();
+    }
+
+    function switchView(viewName) {
+        const views = ['estudiantes', 'docentes', 'cursos', 'matriculas', 'reportes'];
+        views.forEach(v => {
+            const el = document.getElementById(`view-${v}`);
+            if (el) el.style.display = (v === viewName) ? 'block' : 'none';
+        });
+        document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('onclick') && link.getAttribute('onclick').includes(viewName)) {
+                link.classList.add('active');
+            }
+        });
     }
 
     async function loadDashboardData() {
         const [s, t, c, h, r] = await Promise.all([
             apiCall('get_students'), apiCall('get_teachers'), apiCall('get_courses'), apiCall('get_schedules'), apiCall('get_reports')
         ]);
-        if (s && s.success) allStudents = s.students;
-        if (t && t.success) allTeachers = t.teachers;
-        if (c && c.success) allCourses = c.courses;
-        if (h && h.success) allSchedules = h.schedules;
+        if (s && s.success) allStudents = s.students || [];
+        if (t && t.success) allTeachers = t.teachers || [];
+        if (c && c.success) allCourses = c.courses || [];
+        if (h && h.success) allSchedules = h.schedules || [];
         if (r && r.success) reportData = r;
 
         renderStudentTable(); renderTeacherTable(); renderCourseTable(); renderScheduleTable(); renderReports(); populateCourseSelects();
     }
 
     function renderStudentTable() {
-        const tbody = document.querySelector('#studentTable tbody');
+        const tbody = document.getElementById('studentTableBody');
+        if (!tbody) return;
         tbody.innerHTML = '';
         let filtered = allStudents.filter(s => {
             const matchStatus = currentFilter.status ? s.matricula_estado === currentFilter.status : true;
             const matchCourse = currentFilter.course ? s.curso_nombre === currentFilter.course : true;
-            const search = document.getElementById('searchInput').value.toLowerCase();
-            const matchSearch = !search || s.nombres.toLowerCase().includes(search) || s.cedula.includes(search);
+            const searchInput = document.getElementById('searchInput');
+            const search = searchInput ? searchInput.value.toLowerCase() : '';
+            const matchSearch = !search || (s.nombres && s.nombres.toLowerCase().includes(search)) || (s.cedula && s.cedula.includes(search));
             return matchStatus && matchCourse && matchSearch;
         });
 
-        if (filtered.length === 0) { tbody.innerHTML = '<tr><td colspan="7" class="text-center">Sin resultados</td></tr>'; return; }
+        if (filtered.length === 0) { tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">Sin resultados</td></tr>'; return; }
 
         filtered.forEach(s => {
             const tr = document.createElement('tr');
@@ -338,36 +360,44 @@
                 ? `<button class="btn btn-sm btn-success" onclick="window.open('${API_URL}?action=generate_certificate&id_estudiante=${s.id_estudiante}&token=${getToken()}')">PDF</button>`
                 : `<span class="badge bg-secondary">${s.matricula_estado || '-'}</span>`;
             
-            tr.innerHTML = `<td>${s.id_estudiante}</td><td>${s.cedula}</td><td>${s.nombres} ${s.apellidos}</td><td>${s.telefono}</td><td>${s.curso_nombre || '-'}</td><td><span class="badge ${s.matricula_estado === 'En Curso' ? 'bg-primary' : (s.matricula_estado === 'Aprobado' ? 'bg-success' : 'bg-danger')}">${s.matricula_estado || '-'}</span></td><td>${certBtn}</td>`;
+            tr.innerHTML = `<td>${s.id_estudiante}</td><td>${s.cedula}</td><td>${s.nombres} ${s.apellidos}</td><td>${s.telefono || '-'}</td><td>${s.curso_nombre || '-'}</td><td><span class="badge ${s.matricula_estado === 'En Curso' ? 'bg-primary' : (s.matricula_estado === 'Aprobado' ? 'bg-success' : 'bg-danger')}">${s.matricula_estado || '-'}</span></td><td>${certBtn}</td>`;
             tbody.appendChild(tr);
         });
     }
 
     function renderTeacherTable() { 
-        const tbody = document.querySelector('#teacherTable tbody');
-        tbody.innerHTML = allTeachers.map(t => `<tr><td>${t.id_docente}</td><td>${t.cedula}</td><td>${t.nombres}</td><td>${t.apellidos}</td><td>${t.especialidad}</td><td>${t.telefono}</td><td>${t.correo}</td><td><button class="btn btn-sm btn-danger">Eliminar</button></td></tr>`).join(''); 
+        const tbody = document.getElementById('teacherTableBody');
+        if (!tbody) return;
+        tbody.innerHTML = allTeachers.map(t => `<tr><td>${t.id_docente}</td><td>${t.cedula}</td><td>${t.nombres}</td><td>${t.apellidos}</td><td>${t.especialidad || '-'}</td><td>${t.telefono || '-'}</td><td>${t.correo || '-'}</td><td><button class="btn btn-sm btn-danger" onclick="deleteTeacher(${t.id_docente})">Eliminar</button></td></tr>`).join(''); 
     }
     
     function renderCourseTable() { 
-        const tbody = document.querySelector('#courseTable tbody');
-        tbody.innerHTML = allCourses.map(c => `<tr><td>${c.id_curso}</td><td>${c.nombre}</td><td>${c.nivel}</td><td>${c.duracion_horas}h</td><td>$${c.costo}</td><td><button class="btn btn-sm btn-danger">Eliminar</button></td></tr>`).join(''); 
+        const tbody = document.getElementById('courseTableBody');
+        if (!tbody) return;
+        tbody.innerHTML = allCourses.map(c => `<tr><td>${c.id_curso}</td><td>${c.nombre}</td><td>${c.nivel}</td><td>${c.duracion_horas}h</td><td>$${c.costo}</td><td><button class="btn btn-sm btn-danger" onclick="deleteCourse(${c.id_curso})">Eliminar</button></td></tr>`).join(''); 
     }
     
     function renderScheduleTable() { 
-        const tbody = document.querySelector('#scheduleTable tbody');
+        const tbody = document.getElementById('scheduleTableBody');
+        if (!tbody) return;
         tbody.innerHTML = allSchedules.map(h => `<tr><td>${h.curso}</td><td>${h.dia}</td><td>${h.horario}</td><td>${h.docente}</td><td>${h.aula}</td></tr>`).join(''); 
     }
     
     function renderReports() { 
         if(reportData.stats) {
-            document.getElementById('statTotal').textContent = reportData.stats.total_students;
-            document.getElementById('statEnCurso').textContent = reportData.stats.en_curso;
-            document.getElementById('statAprobados').textContent = reportData.stats.aprobados;
-            document.getElementById('statReprobados').textContent = reportData.stats.reprobados;
+            const elTotal = document.getElementById('repTotal') || document.getElementById('statTotal');
+            const elCurso = document.getElementById('repCurso') || document.getElementById('statEnCurso');
+            const elAprob = document.getElementById('repAprob') || document.getElementById('statAprobados');
+            const elRepro = document.getElementById('repRepro') || document.getElementById('statReprobados');
+            
+            if (elTotal) elTotal.textContent = reportData.stats.total_students || 0;
+            if (elCurso) elCurso.textContent = reportData.stats.en_curso || 0;
+            if (elAprob) elAprob.textContent = reportData.stats.aprobados || 0;
+            if (elRepro) elRepro.textContent = reportData.stats.reprobados || 0;
         }
-        const tbody = document.querySelector('#reportTable tbody');
+        const tbody = document.getElementById('reportTableBody');
         if(tbody && reportData.course_stats) {
-            tbody.innerHTML = reportData.course_stats.map(c => `<tr><td>${c.nombre}</td><td>${c.total}</td><td>${c.en_curso}</td><td>${c.aprobados}</td><td>${c.reprobados}</td></tr>`).join('');
+            tbody.innerHTML = reportData.course_stats.map(c => `<tr><td class="ps-4">${c.nombre}</td><td>${c.total}</td><td>${c.en_curso}</td><td>${c.aprobados}</td><td>${c.reprobados}</td></tr>`).join('');
         }
     }
 
@@ -384,11 +414,32 @@
         }
     }
 
+    async function deleteTeacher(id) {
+        if (!confirm('¿Seguro que deseas eliminar este docente?')) return;
+        const res = await apiCall('delete_teacher', 'POST', { id_docente: id });
+        alert(res ? res.message : 'Error al eliminar');
+        loadDashboardData();
+    }
+
+    async function deleteCourse(id) {
+        if (!confirm('¿Seguro que deseas eliminar este curso?')) return;
+        const res = await apiCall('delete_course', 'POST', { id_curso: id });
+        alert(res ? res.message : 'Error al eliminar');
+        loadDashboardData();
+    }
+
     function setupEvents() {
-        document.getElementById('loginForm').addEventListener('submit', handleLogin);
-        document.getElementById('logoutBtnSidebar').addEventListener('click', handleLogout);
-        document.getElementById('searchInput').addEventListener('input', renderStudentTable);
-        document.getElementById('courseFilter').addEventListener('change', (e) => { currentFilter.course = e.target.value; renderStudentTable(); });
+        const loginForm = document.getElementById('loginForm');
+        if (loginForm) loginForm.addEventListener('submit', handleLogin);
+        
+        const logoutBtn = document.getElementById('logoutBtnSidebar');
+        if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
+        
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) searchInput.addEventListener('input', renderStudentTable);
+        
+        const courseFilter = document.getElementById('courseFilter');
+        if (courseFilter) courseFilter.addEventListener('change', (e) => { currentFilter.course = e.target.value; renderStudentTable(); });
         
         ['btnEnCurso', 'btnAprobados', 'btnReprobados'].forEach(id => {
             const btn = document.getElementById(id);
@@ -399,6 +450,23 @@
                 currentFilter.status = map[id]; renderStudentTable();
             });
         });
+
+        // Formulario Matrícula
+        const enrollForm = document.getElementById('enrollForm');
+        if (enrollForm) {
+            enrollForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(enrollForm);
+                const data = Object.fromEntries(formData.entries());
+                const res = await apiCall('register_and_enroll', 'POST', data);
+                alert(res ? res.message : 'Error al matricular');
+                if (res && res.success) {
+                    enrollForm.reset();
+                    switchView('estudiantes');
+                    loadDashboardData();
+                }
+            });
+        }
     }
 </script>
 </body>
