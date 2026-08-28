@@ -280,57 +280,102 @@ switch ($action) {
     case 'register_and_enroll':
         if (!checkAuth()) { http_response_code(401); echo json_encode(['success' => false, 'message' => 'No autorizado']); exit; }
         $data = json_decode(file_get_contents('php://input'), true);
+
+        $cedula = trim($data['cedula'] ?? '');
+        $id_curso = intval($data['id_curso'] ?? 0);
+        $nombres = trim($data['nombres'] ?? '');
+        $apellidos = trim($data['apellidos'] ?? '');
+        $telefono = trim($data['telefono'] ?? '');
+        $correo = trim($data['correo'] ?? '');
+        $fecha_nacimiento = !empty($data['fecha_nacimiento']) ? $data['fecha_nacimiento'] : null;
+        $direccion = !empty($data['direccion']) ? trim($data['direccion']) : null;
+
+        if (empty($cedula) || empty($id_curso) || empty($nombres) || empty($apellidos)) {
+            echo json_encode(['success' => false, 'message' => 'Por favor completa los campos obligatorios: Cédula, Nombres, Apellidos y Curso']);
+            break;
+        }
+
         try {
             $conn->beginTransaction();
-            $cedula = trim($data['cedula']);
-            
-            // Verificar si la cédula ya existe
+
+            // 1. Verificar si la cédula ya existe en la tabla estudiantes
             $stmtCheck = $conn->prepare("SELECT id_estudiante FROM estudiantes WHERE cedula = :c");
             $stmtCheck->execute([':c' => $cedula]);
-            $existingEstId = $stmtCheck->fetchColumn();
+            $id_est = $stmtCheck->fetchColumn();
 
-            if ($existingEstId) {
-                $id_est = $existingEstId;
-                $conn->prepare("UPDATE estudiantes SET nombres = :n, apellidos = :a, telefono = :t, correo = :co, estado = 'Activo' WHERE id_estudiante = :id")
-                     ->execute([':n' => $data['nombres'], ':a' => $data['apellidos'], ':t' => $data['telefono'], ':co' => $data['correo'], ':id' => $id_est]);
+            if ($id_est) {
+                // Actualizar datos del estudiante existente
+                $stmtUpdate = $conn->prepare("UPDATE estudiantes SET nombres = :n, apellidos = :a, fecha_nacimiento = :fn, telefono = :t, correo = :co, direccion = :dir, estado = 'Activo' WHERE id_estudiante = :id");
+                $stmtUpdate->execute([
+                    ':n'   => $nombres,
+                    ':a'   => $apellidos,
+                    ':fn'  => $fecha_nacimiento,
+                    ':t'   => $telefono,
+                    ':co'  => $correo,
+                    ':dir' => $direccion,
+                    ':id'  => $id_est
+                ]);
             } else {
-                $stmtEst = $conn->prepare("INSERT INTO estudiantes (cedula, nombres, apellidos, telefono, correo, estado) VALUES (:c, :n, :a, :t, :co, 'Activo') RETURNING id_estudiante");
-                $stmtEst->execute([':c' => $cedula, ':n' => $data['nombres'], ':a' => $data['apellidos'], ':t' => $data['telefono'], ':co' => $data['correo']]);
+                // Insertar nuevo estudiante con todos los campos de la tabla
+                $stmtEst = $conn->prepare("INSERT INTO estudiantes (cedula, nombres, apellidos, fecha_nacimiento, telefono, correo, direccion, estado) VALUES (:c, :n, :a, :fn, :t, :co, :dir, 'Activo') RETURNING id_estudiante");
+                $stmtEst->execute([
+                    ':c'   => $cedula,
+                    ':n'   => $nombres,
+                    ':a'   => $apellidos,
+                    ':fn'  => $fecha_nacimiento,
+                    ':t'   => $telefono,
+                    ':co'  => $correo,
+                    ':dir' => $direccion
+                ]);
                 $id_est = $stmtEst->fetchColumn();
             }
 
-            // Buscar un horario para el curso elegido
+            // 2. Buscar si el curso seleccionado tiene un horario asignado
             $stmtHor = $conn->prepare("SELECT id_horario FROM horarios WHERE id_curso = :cid LIMIT 1");
-            $stmtHor->execute([':cid' => $data['id_curso']]);
+            $stmtHor->execute([':cid' => $id_curso]);
             $id_horario = $stmtHor->fetchColumn();
 
             if (!$id_horario) {
-                // Si el curso no tiene horario asignado, crear un horario predeterminado automáticamente
+                // Si el curso no tiene horario asignado, crear un horario por defecto automáticamente
                 $firstTeacher = $conn->query("SELECT id_docente FROM docentes ORDER BY id_docente ASC LIMIT 1")->fetchColumn();
                 if (!$firstTeacher) {
-                    $conn->query("INSERT INTO docentes (cedula, nombres, apellidos, especialidad) VALUES ('1700000000', 'Docente', 'General', 'General')");
+                    $conn->query("INSERT INTO docentes (cedula, nombres, apellidos, especialidad, telefono, correo) VALUES ('1700000000', 'Docente', 'General', 'General', '0990000000', 'docente@academia.edu.ec')");
                     $firstTeacher = $conn->query("SELECT id_docente FROM docentes ORDER BY id_docente ASC LIMIT 1")->fetchColumn();
                 }
                 $stmtNewHor = $conn->prepare("INSERT INTO horarios (id_curso, id_docente, dia, hora_inicio, hora_fin, aula) VALUES (:cid, :did, 'Lunes', '08:00:00', '12:00:00', 'Aula Principal') RETURNING id_horario");
-                $stmtNewHor->execute([':cid' => $data['id_curso'], ':did' => $firstTeacher]);
+                $stmtNewHor->execute([':cid' => $id_curso, ':did' => $firstTeacher]);
                 $id_horario = $stmtNewHor->fetchColumn();
             }
 
-            // Crear matrícula en estado 'En Curso'
-            $stmtMat = $conn->prepare("INSERT INTO matriculas (id_estudiante, id_curso, id_horario, fecha_matricula, estado) VALUES (:est, :cur, :hor, CURRENT_DATE, 'En Curso') RETURNING id_matricula");
-            $stmtMat->execute([':est' => $id_est, ':cur' => $data['id_curso'], ':hor' => $id_horario]);
-            $id_matricula = $stmtMat->fetchColumn();
+            // 3. Crear o actualizar matrícula en estado 'En Curso'
+            $stmtMatCheck = $conn->prepare("SELECT id_matricula FROM matriculas WHERE id_estudiante = :est AND id_curso = :cur LIMIT 1");
+            $stmtMatCheck->execute([':est' => $id_est, ':cur' => $id_curso]);
+            $existingMatId = $stmtMatCheck->fetchColumn();
 
-            // Registrar pago
-            $costoStmt = $conn->prepare("SELECT costo FROM cursos WHERE id_curso = :cid");
-            $costoStmt->execute([':cid' => $data['id_curso']]);
-            $costo = $costoStmt->fetchColumn() ?: 0;
+            if ($existingMatId) {
+                $id_matricula = $existingMatId;
+                $conn->prepare("UPDATE matriculas SET id_horario = :hor, estado = 'En Curso', fecha_matricula = CURRENT_DATE WHERE id_matricula = :id")
+                     ->execute([':hor' => $id_horario, ':id' => $id_matricula]);
+            } else {
+                $stmtMat = $conn->prepare("INSERT INTO matriculas (id_estudiante, id_curso, id_horario, fecha_matricula, estado) VALUES (:est, :cur, :hor, CURRENT_DATE, 'En Curso') RETURNING id_matricula");
+                $stmtMat->execute([':est' => $id_est, ':cur' => $id_curso, ':hor' => $id_horario]);
+                $id_matricula = $stmtMat->fetchColumn();
+            }
 
-            $conn->prepare("INSERT INTO pagos (id_matricula, monto, metodo_pago, referencia) VALUES (:m, :monto, 'Efectivo', 'MAT-NEW')")
-                 ->execute([':m' => $id_matricula, ':monto' => $costo]);
+            // 4. Registrar pago de forma segura
+            try {
+                $costoStmt = $conn->prepare("SELECT costo FROM cursos WHERE id_curso = :cid");
+                $costoStmt->execute([':cid' => $id_curso]);
+                $costo = $costoStmt->fetchColumn() ?: 0;
+
+                $conn->prepare("INSERT INTO pagos (id_matricula, monto, metodo_pago, referencia) VALUES (:m, :monto, 'Efectivo', 'MAT-NEW')")
+                     ->execute([':m' => $id_matricula, ':monto' => $costo]);
+            } catch (Exception $ePago) {
+                // Si el pago falla por restriccion o duplicado, no abortar la matricula
+            }
 
             $conn->commit();
-            echo json_encode(['success' => true, 'message' => 'Estudiante matriculado exitosamente']);
+            echo json_encode(['success' => true, 'message' => 'Estudiante matriculado exitosamente en el curso']);
         } catch (Exception $e) {
             if ($conn->inTransaction()) {
                 $conn->rollBack();

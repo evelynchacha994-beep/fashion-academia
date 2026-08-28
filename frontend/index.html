@@ -171,23 +171,25 @@
             <!-- VIEW: MATRÍCULAS -->
             <div id="view-matriculas" style="display:none;">
                 <div class="top-bar"><div class="page-title"><h1>Nueva Matrícula</h1><p>Registrar estudiante y asignar curso</p></div></div>
-                <div class="card-custom p-4" style="max-width: 700px;">
+                <div class="card-custom p-4" style="max-width: 800px;">
                     <form id="enrollForm">
-                        <h5 class="mb-3 text-muted border-bottom pb-2">Datos del Estudiante</h5>
+                        <h5 class="mb-3 text-muted border-bottom pb-2"><i class="fas fa-id-card text-primary me-2"></i>Datos del Estudiante (Base de Datos)</h5>
                         <div class="row g-3 mb-4">
-                            <div class="col-md-4"><label class="form-label fw-bold">Cédula *</label><input type="text" name="cedula" class="form-control" required maxlength="10"></div>
-                            <div class="col-md-4"><label class="form-label fw-bold">Nombres *</label><input type="text" name="nombres" class="form-control" required></div>
-                            <div class="col-md-4"><label class="form-label fw-bold">Apellidos *</label><input type="text" name="apellidos" class="form-control" required></div>
-                            <div class="col-md-6"><label class="form-label fw-bold">Teléfono *</label><input type="text" name="telefono" class="form-control" required maxlength="10"></div>
-                            <div class="col-md-6"><label class="form-label fw-bold">Correo *</label><input type="email" name="correo" class="form-control" required></div>
+                            <div class="col-md-4"><label class="form-label fw-bold">Cédula *</label><input type="text" name="cedula" class="form-control" required maxlength="10" placeholder="Ej: 1701234567"></div>
+                            <div class="col-md-4"><label class="form-label fw-bold">Nombres *</label><input type="text" name="nombres" class="form-control" required placeholder="Ej: María José"></div>
+                            <div class="col-md-4"><label class="form-label fw-bold">Apellidos *</label><input type="text" name="apellidos" class="form-control" required placeholder="Ej: López Pérez"></div>
+                            <div class="col-md-4"><label class="form-label fw-bold">Fecha de Nacimiento</label><input type="date" name="fecha_nacimiento" class="form-control"></div>
+                            <div class="col-md-4"><label class="form-label fw-bold">Teléfono *</label><input type="text" name="telefono" class="form-control" required maxlength="10" placeholder="Ej: 0991234567"></div>
+                            <div class="col-md-4"><label class="form-label fw-bold">Correo *</label><input type="email" name="correo" class="form-control" required placeholder="estudiante@ejemplo.com"></div>
+                            <div class="col-md-12"><label class="form-label fw-bold">Dirección</label><input type="text" name="direccion" class="form-control" placeholder="Ej: Quito, Sector Centro"></div>
                         </div>
-                        <h5 class="mb-3 text-muted border-bottom pb-2">Asignación Académica</h5>
+                        <h5 class="mb-3 text-muted border-bottom pb-2"><i class="fas fa-graduation-cap text-primary me-2"></i>Asignación Académica</h5>
                         <div class="row g-3">
                             <div class="col-md-12"><label class="form-label fw-bold">Curso a Matricular *</label>
                                 <select id="enrollCourse" name="id_curso" class="form-select" required><option value="">Seleccione curso...</option></select>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-action w-100 mt-4 py-2"><i class="fas fa-save me-2"></i> Registrar y Matricular</button>
+                        <button type="submit" class="btn btn-action w-100 mt-4 py-2"><i class="fas fa-save me-2"></i> Registrar y Matricular Estudiante</button>
                     </form>
                 </div>
             </div>
