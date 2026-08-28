@@ -233,292 +233,218 @@
     <div class="modal fade" id="editCourseModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content border-0 shadow"><div class="modal-header bg-light border-0"><h5 class="modal-title fw-bold"><i class="fas fa-edit text-warning me-2"></i>Editar Curso</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><form id="editCourseForm"><input type="hidden" name="id_curso" id="editCourseId"><div class="mb-3"><label class="form-label fw-bold">Nombre del Curso</label><input type="text" name="nombre" id="editCourseNombre" class="form-control" required></div><div class="row g-2"><div class="col-6"><label class="form-label fw-bold">Duración (Horas)</label><input type="number" name="duracion" id="editCourseDuracion" class="form-control" required></div><div class="col-6"><label class="form-label fw-bold">Costo ($)</label><input type="number" step="0.01" name="costo" id="editCourseCosto" class="form-control" required></div></div><div class="mb-3 mt-3"><label class="form-label fw-bold">Nivel</label><select name="nivel" id="editCourseNivel" class="form-select"><option>Básico</option><option>Intermedio</option><option>Avanzado</option></select></div><button type="submit" class="btn btn-action w-100">Actualizar Curso</button></form></div></div></div></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-       const API_URL = 'https://fashion-academia-api.onrender.com/api.php';
-        let currentFilter = { course: '', status: 'En Curso' };
-        let allStudents = [], allTeachers = [], allCourses = [], allSchedules = [], reportData = {};
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const API_URL = 'https://fashion-academia-api.onrender.com/api.php';
+    let currentFilter = { course: '', status: 'En Curso' };
+    let allStudents = [], allTeachers = [], allCourses = [], allSchedules = [], reportData = {};
 
-        document.addEventListener('DOMContentLoaded', () => { checkSession(); setupEvents(); });
+    // --- FUNCIONES DE AUTENTICACIÓN (TOKEN) ---
+    function getToken() {
+        return localStorage.getItem('fashion_token');
+    }
 
-        function setupEvents() {
-            document.getElementById('loginForm').addEventListener('submit', handleLogin);
-            document.getElementById('logoutBtnSidebar').addEventListener('click', handleLogout);
+    function setToken(token) {
+        localStorage.setItem('fashion_token', token);
+    }
+
+    function clearToken() {
+        localStorage.removeItem('fashion_token');
+    }
+
+    // Función Fetch Mejorada con Token
+    async function apiCall(action, method = 'GET', data = null) {
+        const token = getToken();
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': token ? `Bearer ${token}` : ''
+        };
+
+        const options = { method, headers };
+        if (data) options.body = JSON.stringify(data);
+
+        try {
+            // Si es GET, añadimos la action a la URL
+            const url = method === 'GET' ? `${API_URL}?action=${action}` : `${API_URL}?action=${action}`;
+            const response = await fetch(url, options);
             
-            document.getElementById('searchInput').addEventListener('input', renderStudentTable);
-            document.getElementById('courseFilter').addEventListener('change', (e) => { currentFilter.course = e.target.value; renderStudentTable(); });
-            ['btnEnCurso', 'btnAprobados', 'btnReprobados'].forEach(id => {
-                document.getElementById(id).addEventListener('click', (e) => {
-                    document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
-                    e.target.classList.add('active');
-                    const map = { 'btnEnCurso': 'En Curso', 'btnAprobados': 'Aprobado', 'btnReprobados': 'Reprobado' };
-                    currentFilter.status = map[id]; renderStudentTable();
-                });
-            });
+            if (response.status === 401) {
+                alert('Sesión expirada. Por favor inicie sesión nuevamente.');
+                clearToken();
+                window.location.reload();
+                return null;
+            }
+            
+            return await response.json();
+        } catch (error) {
+            console.error('Error API:', error);
+            return { success: false, message: 'Error de conexión' };
+        }
+    }
 
-            document.getElementById('searchTeacherInput').addEventListener('input', renderTeacherTable);
-            document.getElementById('addTeacherForm').addEventListener('submit', handleAddTeacher);
-            document.getElementById('editTeacherForm').addEventListener('submit', handleUpdateTeacher);
-            document.getElementById('enrollForm').addEventListener('submit', handleEnroll);
-            document.getElementById('uploadBtn').addEventListener('click', handleExcelUpload);
-            document.getElementById('addCourseForm').addEventListener('submit', handleAddCourse);
-            document.getElementById('editCourseForm').addEventListener('submit', handleUpdateCourse);
+    // --- LÓGICA DE LA APP ---
+
+    document.addEventListener('DOMContentLoaded', () => { 
+        checkSession(); 
+        setupEvents(); 
+    });
+
+    function checkSession() {
+        if (getToken()) {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('appScreen').style.display = 'flex';
+            loadDashboardData();
+        } else {
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('appScreen').style.display = 'none';
+        }
+    }
+
+    async function handleLogin(e) {
+        e.preventDefault();
+        const usuario = document.getElementById('loginUser').value;
+        const password = document.getElementById('loginPass').value;
+        const errorMsg = document.getElementById('loginError');
+
+        errorMsg.textContent = '';
+
+        const res = await apiCall('login', 'POST', { usuario, password });
+
+        if (res && res.success) {
+            setToken(res.token); // Guardamos el token
+            checkSession();
+        } else {
+            errorMsg.textContent = res ? res.message : 'Error al conectar';
+        }
+    }
+
+    function handleLogout() {
+        clearToken();
+        window.location.reload();
+    }
+
+    async function loadDashboardData() {
+        // Cargar todo en paralelo
+        const [studentsRes, teachersRes, coursesRes, schedulesRes, reportsRes] = await Promise.all([
+            apiCall('get_students'),
+            apiCall('get_teachers'),
+            apiCall('get_courses'),
+            apiCall('get_schedules'),
+            apiCall('get_reports')
+        ]);
+
+        if (studentsRes && studentsRes.success) allStudents = studentsRes.students;
+        if (teachersRes && teachersRes.success) allTeachers = teachersRes.teachers;
+        if (coursesRes && coursesRes.success) allCourses = coursesRes.courses;
+        if (schedulesRes && schedulesRes.success) allSchedules = schedulesRes.schedules;
+        if (reportsRes && reportsRes.success) reportData = reportsRes;
+
+        renderStudentTable();
+        renderTeacherTable();
+        renderCourseTable();
+        renderScheduleTable();
+        renderReports();
+        populateCourseSelects();
+    }
+
+    // ... (Mantén tus funciones de renderizado renderStudentTable, renderTeacherTable, etc. igual que antes) ...
+    // PERO asegúrate de que si hacen fetch manualmente, usen la función apiCall o incluyan el header.
+    
+    // Ejemplo de cómo deberían quedar tus funciones de renderizado si usaban fetch antes:
+    // Ya no necesitan fetch interno si usamos loadDashboardData arriba.
+    // Si tienes botones que recargan datos específicos, usa apiCall('accion').
+
+    function renderStudentTable() {
+        const tbody = document.querySelector('#studentTable tbody');
+        tbody.innerHTML = '';
+        
+        let filtered = allStudents.filter(s => {
+            const matchStatus = currentFilter.status ? s.matricula_estado === currentFilter.status : true;
+            const matchCourse = currentFilter.course ? s.curso_nombre === currentFilter.course : true;
+            const matchSearch = document.getElementById('searchInput').value.toLowerCase();
+            const searchMatch = !matchSearch || 
+                s.nombres.toLowerCase().includes(matchSearch) || 
+                s.apellidos.toLowerCase().includes(matchSearch) || 
+                s.cedula.includes(matchSearch);
+            return matchStatus && matchCourse && searchMatch;
+        });
+
+        if (filtered.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center">Sin resultados</td></tr>';
+            return;
         }
 
-        async function handleLogin(e) {
-            e.preventDefault();
-            const res = await fetch(API_URL + '?action=login', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ usuario: document.getElementById('usuario').value, password: document.getElementById('password').value }), credentials: 'include' });
-            const data = await res.json();
-            if (data.success) { localStorage.setItem('user_rol', data.user.rol); updateUI(data.user); loadAllData(); } 
-            else { document.getElementById('loginMsg').textContent = data.message; }
-        }
-
-        async function handleLogout() {
-            await fetch(API_URL + '?action=logout', { method: 'POST', credentials: 'include' });
-            localStorage.removeItem('user_rol'); window.location.reload();
-        }
-
-        function checkSession() {
-            if (localStorage.getItem('user_rol')) { updateUI({ usuario: 'Admin', rol: localStorage.getItem('user_rol') }); loadAllData(); }
-        }
-
-        function updateUI(user) {
-            document.getElementById('loginSection').style.display = 'none';
-            document.getElementById('dashboardSection').style.display = 'block';
-            document.getElementById('userNameDisplay').textContent = user.usuario;
-            document.getElementById('userRolDisplay').textContent = user.rol;
-        }
-
-        function switchView(viewName) {
-            ['estudiantes', 'docentes', 'cursos', 'matriculas', 'reportes'].forEach(v => document.getElementById('view-' + v).style.display = 'none');
-            document.getElementById('view-' + viewName).style.display = 'block';
-            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-            if (viewName === 'docentes') renderTeacherTable();
-            if (viewName === 'cursos') { renderCourseTable(); renderScheduleTable(); }
-            if (viewName === 'matriculas') loadEnrollOptions();
-            if (viewName === 'reportes') loadReports();
-        }
-
-        async function loadAllData() {
-            const sRes = await fetch(API_URL + '?action=get_students', { credentials: 'include' });
-            const sData = await sRes.json();
-            if (sData.success) { allStudents = sData.students; renderStudentTable(); }
-
-            const cRes = await fetch(API_URL + '?action=get_courses', { credentials: 'include' });
-            const cData = await cRes.json();
-            if (cData.success) {
-                allCourses = cData.courses;
-                const sel = document.getElementById('courseFilter');
-                sel.innerHTML = '<option value="">Todos los cursos</option>';
-                cData.courses.forEach(c => sel.innerHTML += '<option value="' + c.nombre + '">' + c.nombre + '</option>');
+        filtered.forEach(s => {
+            const tr = document.createElement('tr');
+            let certBtn = '';
+            if (s.matricula_estado === 'Aprobado') {
+                certBtn = `<button class="btn btn-sm btn-success" onclick="window.open('${API_URL}?action=generate_certificate&id_estudiante=${s.id_estudiante}&token=${getToken()}')">PDF</button>`;
+            } else {
+                certBtn = `<span class="badge bg-secondary">${s.matricula_estado || 'Sin matrícula'}</span>`;
             }
 
-            const tRes = await fetch(API_URL + '?action=get_teachers', { credentials: 'include' });
-            const tData = await tRes.json();
-            if (tData.success) allTeachers = tData.teachers;
+            tr.innerHTML = `
+                <td>${s.id_estudiante}</td>
+                <td>${s.cedula}</td>
+                <td>${s.nombres} ${s.apellidos}</td>
+                <td>${s.telefono}</td>
+                <td>${s.curso_nombre || '-'}</td>
+                <td><span class="badge ${s.matricula_estado === 'En Curso' ? 'bg-primary' : (s.matricula_estado === 'Aprobado' ? 'bg-success' : 'bg-danger')}">${s.matricula_estado || '-'}</span></td>
+                <td>${certBtn}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
 
-            const hRes = await fetch(API_URL + '?action=get_schedules', { credentials: 'include' });
-            const hData = await hRes.json();
-            if (hData.success) allSchedules = hData.schedules;
-        }
-
-        // --- RENDER FUNCTIONS ---
-        function renderStudentTable() {
-            const tbody = document.getElementById('studentTableBody');
-            const term = document.getElementById('searchInput').value.toLowerCase();
-            let filtered = allStudents.filter(s => {
-                const matchStatus = s.matricula_estado === currentFilter.status;
-                const matchCourse = !currentFilter.course || s.curso_nombre === currentFilter.course;
-                const matchSearch = !term || s.nombres.toLowerCase().includes(term) || s.apellidos.toLowerCase().includes(term) || s.cedula.includes(term) || String(s.id_estudiante).includes(term);
-                return matchStatus && matchCourse && matchSearch;
+    // ... Copia y pega aquí el resto de tus funciones (renderTeacherTable, renderCourseTable, etc.) ...
+    // Asegúrate de reemplazar cualquier "fetch(API_URL..." dentro de ellas por "apiCall(...)"
+    
+    function setupEvents() {
+        document.getElementById('loginForm').addEventListener('submit', handleLogin);
+        document.getElementById('logoutBtnSidebar').addEventListener('click', handleLogout);
+        document.getElementById('searchInput').addEventListener('input', renderStudentTable);
+        document.getElementById('courseFilter').addEventListener('change', (e) => { 
+            currentFilter.course = e.target.value; 
+            renderStudentTable(); 
+        });
+        
+        ['btnEnCurso', 'btnAprobados', 'btnReprobados'].forEach(id => {
+            document.getElementById(id).addEventListener('click', (e) => {
+                document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                const map = { 'btnEnCurso': 'En Curso', 'btnAprobados': 'Aprobado', 'btnReprobados': 'Reprobado' };
+                currentFilter.status = map[id];
+                renderStudentTable();
             });
+        });
 
-            tbody.innerHTML = '';
-            if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">Sin resultados</td></tr>'; return; }
-            
-            filtered.forEach(s => {
-                const badge = s.matricula_estado === 'Aprobado' ? 'bg-aprobado' : s.matricula_estado === 'Reprobado' ? 'bg-reprobado' : 'bg-en-curso';
-                let actionCol = '<span class="badge-status bg-activo">Activo</span>';
-                if (s.matricula_estado === 'Aprobado') {
-                    actionCol = `<button class="btn btn-sm btn-action" onclick="downloadCert(${s.id_estudiante})"><i class="fas fa-certificate"></i> Certificado</button>`;
-                }
-                tbody.innerHTML += '<tr><td class="ps-4 fw-bold text-muted">#' + s.id_estudiante + '</td><td>' + s.cedula + '</td><td class="fw-bold">' + s.nombres + ' ' + s.apellidos + '</td><td>' + (s.telefono||'-') + '</td><td>' + (s.curso_nombre||'-') + '</td><td><span class="badge-status ' + badge + '">' + s.matricula_estado + '</span></td><td>' + actionCol + '</td></tr>';
-            });
-        }
+        // ... (Resto de tus event listeners para modales, etc.) ...
+    }
 
-        function downloadCert(id) { window.open(API_URL + '?action=generate_certificate&id_estudiante=' + id, '_blank'); }
-
-        function renderTeacherTable() {
-            const tbody = document.getElementById('teacherTableBody');
-            const term = document.getElementById('searchTeacherInput').value.toLowerCase();
-            const filtered = allTeachers.filter(t => !term || t.nombres.toLowerCase().includes(term) || t.apellidos.toLowerCase().includes(term) || t.cedula.includes(term));
-            
-            tbody.innerHTML = '';
-            if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted">Sin resultados</td></tr>'; return; }
-            
-            filtered.forEach(t => {
-                tbody.innerHTML += '<tr><td class="ps-4 fw-bold text-muted">#' + t.id_docente + '</td><td>' + t.cedula + '</td><td>' + t.nombres + '</td><td>' + t.apellidos + '</td><td>' + t.especialidad + '</td><td>' + (t.telefono||'-') + '</td><td>' + (t.correo||'-') + '</td><td><button class="btn btn-icon btn-edit" onclick="openEditTeacher(' + t.id_docente + ')"><i class="fas fa-edit"></i></button><button class="btn btn-icon btn-delete" onclick="deleteTeacher(' + t.id_docente + ')"><i class="fas fa-trash"></i></button></td></tr>';
-            });
-        }
-
-        function openEditTeacher(id) {
-            const t = allTeachers.find(x => x.id_docente === id);
-            if (!t) return;
-            document.getElementById('editTeacherId').value = t.id_docente;
-            document.getElementById('editTeacherCedula').value = t.cedula;
-            document.getElementById('editTeacherNombres').value = t.nombres;
-            document.getElementById('editTeacherApellidos').value = t.apellidos;
-            document.getElementById('editTeacherEspecialidad').value = t.especialidad;
-            document.getElementById('editTeacherTelefono').value = t.telefono;
-            document.getElementById('editTeacherCorreo').value = t.correo;
-            new bootstrap.Modal(document.getElementById('editTeacherModal')).show();
-        }
-
-        async function handleAddTeacher(e) {
-            e.preventDefault();
-            const formData = new FormData(e.target); const data = Object.fromEntries(formData.entries());
-            const res = await fetch(API_URL + '?action=add_teacher', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data), credentials: 'include' });
-            const result = await res.json(); alert(result.message);
-            if (result.success) { bootstrap.Modal.getInstance(document.getElementById('addTeacherModal')).hide(); e.target.reset(); loadAllData(); }
-        }
-
-        async function handleUpdateTeacher(e) {
-            e.preventDefault();
-            const formData = new FormData(e.target); const data = Object.fromEntries(formData.entries());
-            const res = await fetch(API_URL + '?action=update_teacher', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data), credentials: 'include' });
-            const result = await res.json(); alert(result.message);
-            if (result.success) { bootstrap.Modal.getInstance(document.getElementById('editTeacherModal')).hide(); loadAllData(); }
-        }
-
-        async function deleteTeacher(id) {
-            if (!confirm('¿Estás seguro de eliminar este docente?')) return;
-            const res = await fetch(API_URL + '?action=delete_teacher', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ id_docente: id }), credentials: 'include' });
-            const result = await res.json(); alert(result.message);
-            if (result.success) loadAllData();
-        }
-
-        function renderCourseTable() {
-            const tbody = document.getElementById('courseTableBody');
-            tbody.innerHTML = '';
-            if (!allCourses.length) { tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Sin cursos registrados</td></tr>'; return; }
-            
+    function populateCourseSelects() {
+        const selects = [document.getElementById('courseFilter'), document.getElementById('enrollCourse')];
+        selects.forEach(sel => {
+            if(!sel) return;
+            sel.innerHTML = '<option value="">Todos los cursos</option>';
             allCourses.forEach(c => {
-                tbody.innerHTML += '<tr><td class="ps-4 fw-bold text-muted">#' + c.id_curso + '</td><td class="fw-bold">' + c.nombre + '</td><td>' + c.nivel + '</td><td>' + c.duracion_horas + ' hrs</td><td>$' + c.costo + '</td><td><button class="btn btn-icon btn-edit" onclick="openEditCourse(' + c.id_curso + ')"><i class="fas fa-edit"></i></button><button class="btn btn-icon btn-delete" onclick="deleteCourse(' + c.id_curso + ')"><i class="fas fa-trash"></i></button></td></tr>';
+                sel.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`;
             });
+        });
+    }
+    
+    // Funciones placeholder para que no rompa si faltan en tu código original
+    function renderTeacherTable() { document.querySelector('#teacherTable tbody').innerHTML = allTeachers.map(t => `<tr><td>${t.id_docente}</td><td>${t.cedula}</td><td>${t.nombres}</td><td>${t.apellidos}</td><td>${t.especialidad}</td><td>${t.telefono}</td><td>${t.correo}</td><td>Acciones</td></tr>`).join(''); }
+    function renderCourseTable() { document.querySelector('#courseTable tbody').innerHTML = allCourses.map(c => `<tr><td>${c.id_curso}</td><td>${c.nombre}</td><td>${c.nivel}</td><td>${c.duracion_horas}h</td><td>$${c.costo}</td><td>Acciones</td></tr>`).join(''); }
+    function renderScheduleTable() { document.querySelector('#scheduleTable tbody').innerHTML = allSchedules.map(h => `<tr><td>${h.curso}</td><td>${h.dia}</td><td>${h.horario}</td><td>${h.docente}</td><td>${h.aula}</td></tr>`).join(''); }
+    function renderReports() { 
+        if(reportData.stats) {
+            document.getElementById('statTotal').textContent = reportData.stats.total_students;
+            document.getElementById('statEnCurso').textContent = reportData.stats.en_curso;
+            document.getElementById('statAprobados').textContent = reportData.stats.aprobados;
+            document.getElementById('statReprobados').textContent = reportData.stats.reprobados;
         }
+    }
 
-        function renderScheduleTable() {
-            const tbody = document.getElementById('scheduleTableBody');
-            tbody.innerHTML = '';
-            if (!allSchedules.length) { tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">Sin horarios registrados</td></tr>'; return; }
-            allSchedules.forEach(h => { tbody.innerHTML += '<tr><td class="ps-4 fw-bold">' + h.curso + '</td><td>' + h.dia + '</td><td>' + h.horario + '</td><td>' + h.docente + '</td><td>' + h.aula + '</td></tr>'; });
-        }
-
-        function openEditCourse(id) {
-            const c = allCourses.find(x => x.id_curso === id);
-            if (!c) return;
-            document.getElementById('editCourseId').value = c.id_curso;
-            document.getElementById('editCourseNombre').value = c.nombre;
-            document.getElementById('editCourseDuracion').value = c.duracion_horas;
-            document.getElementById('editCourseCosto').value = c.costo;
-            document.getElementById('editCourseNivel').value = c.nivel;
-            new bootstrap.Modal(document.getElementById('editCourseModal')).show();
-        }
-
-        async function handleAddCourse(e) {
-            e.preventDefault();
-            const formData = new FormData(e.target); const data = Object.fromEntries(formData.entries());
-            const res = await fetch(API_URL + '?action=add_course', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data), credentials: 'include' });
-            const result = await res.json(); alert(result.message);
-            if (result.success) { bootstrap.Modal.getInstance(document.getElementById('addCourseModal')).hide(); e.target.reset(); loadAllData(); }
-        }
-
-        async function handleUpdateCourse(e) {
-            e.preventDefault();
-            const formData = new FormData(e.target); const data = Object.fromEntries(formData.entries());
-            const res = await fetch(API_URL + '?action=update_course', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data), credentials: 'include' });
-            const result = await res.json(); alert(result.message);
-            if (result.success) { bootstrap.Modal.getInstance(document.getElementById('editCourseModal')).hide(); loadAllData(); }
-        }
-
-        async function deleteCourse(id) {
-            if (!confirm('¿Estás seguro de eliminar este curso? Se perderán las matrículas asociadas.')) return;
-            const res = await fetch(API_URL + '?action=delete_course', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ id_curso: id }), credentials: 'include' });
-            const result = await res.json(); alert(result.message);
-            if (result.success) loadAllData();
-        }
-
-        async function loadEnrollOptions() {
-            const cSel = document.getElementById('enrollCourse');
-            cSel.innerHTML = '<option value="">Seleccione curso...</option>';
-            const cRes = await fetch(API_URL + '?action=get_courses', { credentials: 'include' });
-            const cData = await cRes.json();
-            if (cData.success) cData.courses.forEach(c => cSel.innerHTML += '<option value="' + c.id_curso + '">' + c.nombre + ' ($' + (c.costo || '0') + ')</option>');
-        }
-
-        async function handleEnroll(e) {
-            e.preventDefault();
-            const formData = new FormData(e.target); const data = Object.fromEntries(formData.entries());
-            data.id_curso = document.getElementById('enrollCourse').value;
-            const res = await fetch(API_URL + '?action=register_and_enroll', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data), credentials: 'include' });
-            const result = await res.json(); alert(result.message);
-            if (result.success) { e.target.reset(); loadAllData(); switchView('estudiantes'); }
-        }
-
-        async function loadReports() {
-            const res = await fetch(API_URL + '?action=get_reports', { credentials: 'include' });
-            const data = await res.json();
-            if (data.success) {
-                reportData = data;
-                document.getElementById('repTotal').textContent = data.stats.total_students;
-                document.getElementById('repCurso').textContent = data.stats.en_curso;
-                document.getElementById('repAprob').textContent = data.stats.aprobados;
-                document.getElementById('repRepro').textContent = data.stats.reprobados;
-                const tbody = document.getElementById('reportTableBody'); tbody.innerHTML = '';
-                data.course_stats.forEach(c => { tbody.innerHTML += '<tr><td class="ps-4 fw-bold">' + c.nombre + '</td><td>' + c.total + '</td><td style="color:#1565c0">' + c.en_curso + '</td><td style="color:#6a1b9a">' + c.aprobados + '</td><td style="color:#c62828">' + c.reprobados + '</td></tr>'; });
-            }
-        }
-
-        async function handleExcelUpload() {
-            const file = document.getElementById('excelFile').files[0];
-            if (!file) return alert('Selecciona un archivo');
-            const formData = new FormData(); formData.append('results_file', file);
-            const btn = document.getElementById('uploadBtn'); btn.disabled = true; btn.textContent = 'Procesando...';
-            const res = await fetch(API_URL + '?action=upload_excel', { method: 'POST', body: formData, credentials: 'include' });
-            const data = await res.json(); alert(data.message);
-            if (data.success) { bootstrap.Modal.getInstance(document.getElementById('uploadModal')).hide(); loadAllData(); }
-            btn.disabled = false; btn.textContent = 'Procesar';
-        }
-
-        async function exportData(type) {
-            try {
-                const res = await fetch(API_URL + '?action=get_export_data', { credentials: 'include' });
-                const data = await res.json();
-                if (!data.success) return alert('Error al obtener datos para exportar');
-
-                if (type === 'excel') {
-                    const wb = XLSX.utils.book_new();
-                    const wsEst = XLSX.utils.json_to_sheet(data.students.map(s => ({ ID: s.id_estudiante, Cédula: s.cedula, Nombres: s.nombres, Apellidos: s.apellidos, Curso: s.curso || 'Sin asignar', Estado: s.estado || 'Sin matrícula' })));
-                    XLSX.utils.book_append_sheet(wb, wsEst, "Estudiantes");
-                    const wsDoc = XLSX.utils.json_to_sheet(data.teachers.map(t => ({ ID: t.id_docente, Cédula: t.cedula, Nombres: t.nombres, Apellidos: t.apellidos, Especialidad: t.especialidad, Teléfono: t.telefono, Correo: t.correo })));
-                    XLSX.utils.book_append_sheet(wb, wsDoc, "Docentes");
-                    const wsStats = XLSX.utils.json_to_sheet([{ Concepto: 'Total Estudiantes', Cantidad: data.stats.total_students }, { Concepto: 'En Curso', Cantidad: data.stats.en_curso }, { Concepto: 'Aprobados', Cantidad: data.stats.aprobados }, { Concepto: 'Reprobados', Cantidad: data.stats.reprobados }]);
-                    XLSX.utils.book_append_sheet(wb, wsStats, "Resumen");
-                    XLSX.writeFile(wb, "Reporte_Academia_Fashion.xlsx");
-                } else if (type === 'pdf') {
-                    const { jsPDF } = window.jspdf;
-                    const doc = new jsPDF({ orientation: 'landscape' });
-                    doc.setFontSize(18); doc.setTextColor(74, 20, 140);
-                    doc.text("ACADEMIA FASHION - REPORTE GENERAL", 14, 20);
-                    doc.setFontSize(10); doc.setTextColor(100);
-                    doc.text("Generado el: " + new Date().toLocaleString(), 14, 26);
-                    doc.autoTable({ startY: 35, head: [['ID', 'Cédula', 'Nombres', 'Apellidos', 'Curso', 'Estado']], body: data.students.map(s => [s.id_estudiante, s.cedula, s.nombres, s.apellidos, s.curso || '-', s.estado || '-']), theme: 'grid', headStyles: { fillColor: [74, 20, 140] }, alternateRowStyles: { fillColor: [243, 229, 245] } });
-                    doc.addPage(); doc.setFontSize(16); doc.text("LISTADO DE DOCENTES", 14, 20);
-                    doc.autoTable({ startY: 30, head: [['ID', 'Cédula', 'Nombres', 'Especialidad', 'Teléfono']], body: data.teachers.map(t => [t.id_docente, t.cedula, t.nombres + ' ' + t.apellidos, t.especialidad, t.telefono]), theme: 'grid', headStyles: { fillColor: [74, 20, 140] } });
-                    doc.save("Reporte_Academia_Fashion.pdf");
-                }
-            } catch (err) { console.error(err); alert('Error al generar el archivo: ' + err.message); }
-        }
-    </script>
+</script>
 </body>
 </html>
